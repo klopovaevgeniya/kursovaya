@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель администратора</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/admin/dashboard}">🛠️ AutoDetail - Админ</a>
+        <div class="navbar-nav">
+            <a class="nav-link active" th:href="@{/admin/dashboard}">Главная</a>
+            <a class="nav-link" th:href="@{/admin/items}">Товары</a>
+            <a class="nav-link" th:href="@{/admin/suppliers}">Поставщики</a>
+            <a class="nav-link" th:href="@{/admin/managers}">Менеджеры</a>
+            <a class="nav-link" th:href="@{/admin/statistics}">Статистика</a>
+            <a class="nav-link" th:href="@{/admin/reports}">Отчеты</a>
+        </div>
+        <div class="navbar-nav ms-auto">
+                <span class="navbar-text text-light me-3">
+                    Вы вошли как: <strong>Администратор</strong>
+                </span>
+            <form th:action="@{/auth/logout}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-light btn-sm">🚪 Выйти</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h1>👑 Панель администратора</h1>
+    <p class="lead">Управление всем магазином автозапчастей</p>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body text-center">
+                    <h2 th:text="${totalItems}">0</h2>
+                    <p class="mb-0">Товаров</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h2 th:text="${totalSuppliers}">0</h2>
+                    <p class="mb-0">Поставщиков</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body text-center">
+                    <h2 th:text="${totalManagers}">0</h2>
+                    <p class="mb-0">Менеджеров</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body text-center">
+                    <h2 th:text="${totalClients}">0</h2>
+                    <p class="mb-0">Клиентов</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">📦 Управление товарами</h5>
+                </div>
+                <div class="card-body">
+                    <p>Полный контроль над товарами: добавление, редактирование, удаление</p>
+                    <div class="d-grid gap-2">
+                        <a th:href="@{/admin/items}" class="btn btn-outline-primary">Перейти к товарам</a>
+                        <a th:href="@{/admin/items/create}" class="btn btn-primary">➕ Добавить товар</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">🏢 Управление поставщиками</h5>
+                </div>
+                <div class="card-body">
+                    <p>Управление поставщиками и их контактной информацией</p>
+                    <div class="d-grid gap-2">
+                        <a th:href="@{/admin/suppliers}" class="btn btn-outline-success">Перейти к поставщикам</a>
+                        <a th:href="@{/admin/suppliers/create}" class="btn btn-success">➕ Добавить поставщика</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0">👨‍💼 Управление менеджерами</h5>
+                </div>
+                <div class="card-body">
+                    <p>Создание и управление учетными записями менеджеров</p>
+                    <div class="d-grid gap-2">
+                        <a th:href="@{/admin/managers}" class="btn btn-outline-warning">Перейти к менеджерам</a>
+                        <a th:href="@{/admin/managers/create}" class="btn btn-warning">➕ Добавить менеджера</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Дополнительные разделы -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">📊 Статистика</h5>
+                </div>
+                <div class="card-body">
+                    <p>Просмотр аналитики и статистики магазина</p>
+                    <a th:href="@{/admin/statistics}" class="btn btn-info">Перейти к статистике</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">📄 Отчеты</h5>
+                </div>
+                <div class="card-body">
+                    <p>Генерация и просмотр отчетов по деятельности магазина</p>
+                    <a th:href="@{/admin/reports}" class="btn btn-secondary">Перейти к отчетам</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

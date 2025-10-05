@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Поставщики - Панель администратора</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/admin/dashboard}">🛠️ AutoDetail - Админ</a>
+        <div class="navbar-nav">
+            <a class="nav-link" th:href="@{/admin/dashboard}">Главная</a>
+            <a class="nav-link" th:href="@{/admin/items}">Товары</a>
+            <a class="nav-link active" th:href="@{/admin/suppliers}">Поставщики</a>
+            <a class="nav-link" th:href="@{/admin/managers}">Менеджеры</a>
+            <a class="nav-link" th:href="@{/admin/statistics}">Статистика</a>
+            <a class="nav-link" th:href="@{/admin/reports}">Отчеты</a>
+        </div>
+        <div class="navbar-nav ms-auto">
+                <span class="navbar-text text-light me-3">
+                    Вы вошли как: <strong>Администратор</strong>
+                </span>
+            <form th:action="@{/auth/logout}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-light btn-sm">🚪 Выйти</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>🏢 Управление поставщиками</h1>
+        <div>
+            <a th:href="@{/admin/suppliers/create}" class="btn btn-success">➕ Добавить поставщика</a>
+        </div>
+    </div>
+
+    <!-- Сообщения об успехе -->
+    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${param.success == 'created'} ? 'Поставщик успешно создан' :
+                           ${param.success == 'updated'} ? 'Поставщик успешно обновлен' :
+                           ${param.success == 'deleted'} ? 'Поставщик успешно удален' : ''"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Поиск -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">🔍 Поиск поставщиков</h5>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/admin/suppliers}" method="get" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="search" th:value="${search}"
+                           placeholder="Поиск по названию, email или телефону...">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">Найти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список поставщиков -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0" th:text="${searchType}">Все поставщики</h5>
+            <span class="badge bg-primary" th:text="${'Найдено: ' + totalSuppliers}"></span>
+        </div>
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(suppliers)}" class="text-center text-muted py-4">
+                <h4>😔 Поставщики не найдены</h4>
+                <p>Попробуйте изменить параметры поиска или <a th:href="@{/admin/suppliers/create}">добавить нового поставщика</a></p>
+            </div>
+
+            <div th:if="${not #lists.isEmpty(suppliers)}" class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Телефон</th>
+                        <th>Email</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="supplier : ${suppliers}">
+                        <td th:text="${supplier.id}"></td>
+                        <td>
+                            <strong th:text="${supplier.name}"></strong>
+                        </td>
+                        <td th:text="${supplier.contactPhone}"></td>
+                        <td>
+                            <a th:if="${supplier.contactEmail}" th:href="'mailto:' + ${supplier.contactEmail}"
+                               th:text="${supplier.contactEmail}" class="text-decoration-none"></a>
+                            <span th:if="${!supplier.contactEmail}" class="text-muted">Не указан</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{/admin/suppliers/edit/{id}(id=${supplier.id})}"
+                                   class="btn btn-outline-warning">✏️</a>
+                                <form th:action="@{/admin/suppliers/delete/{id}(id=${supplier.id})}"
+                                      method="post"
+                                      class="d-inline"
+                                      th:onsubmit="return confirm('Вы уверены, что хотите удалить этого поставщика?')">
+                                    <button type="submit" class="btn btn-outline-danger">🗑️</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

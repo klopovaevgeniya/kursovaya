@@ -1,0 +1,46 @@
+spring:
+  config:
+    name: AutoDetail
+  datasource:
+    url: jdbc:postgresql://localhost:5432/DetailDB
+    username: postgres
+    password: 1
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+
+  web:
+    resources:
+      static-locations: classpath:/static/
+
+logging:
+  level:
+    com.autodetail: INFO
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: false  # измените на true для отладки SQL
+    org.hibernate.type.descriptor.sql.BasicBinder: false  # измените на true для отладки параметров SQL
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"
+
+server:
+  port: 8080
+  servlet:
+    context-path: /

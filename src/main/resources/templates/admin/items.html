@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Товары - Панель администратора</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" th:href="@{/admin/dashboard}">🛠️ AutoDetail - Админ</a>
+    <div class="navbar-nav">
+      <a class="nav-link" th:href="@{/admin/dashboard}">Главная</a>
+      <a class="nav-link active" th:href="@{/admin/items}">Товары</a>
+      <a class="nav-link" th:href="@{/admin/suppliers}">Поставщики</a>
+      <a class="nav-link" th:href="@{/admin/managers}">Менеджеры</a>
+      <a class="nav-link" th:href="@{/admin/statistics}">Статистика</a>
+      <a class="nav-link" th:href="@{/admin/reports}">Отчеты</a>
+    </div>
+    <div class="navbar-nav ms-auto">
+                <span class="navbar-text text-light me-3">
+                    Вы вошли как: <strong>Администратор</strong>
+                </span>
+      <form th:action="@{/auth/logout}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-outline-light btn-sm">🚪 Выйти</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>📦 Управление товарами</h1>
+    <div>
+      <a th:href="@{/admin/items/create}" class="btn btn-success">➕ Добавить товар</a>
+    </div>
+  </div>
+
+  <!-- Сообщения об успехе -->
+  <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${param.success == 'created'} ? 'Товар успешно создан' :
+                           ${param.success == 'updated'} ? 'Товар успешно обновлен' :
+                           ${param.success == 'deleted'} ? 'Товар успешно удален' : ''"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Фильтры и поиск -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">🔍 Поиск и фильтрация товаров</h5>
+    </div>
+    <div class="card-body">
+      <form th:action="@{/admin/items}" method="get" class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Поиск по названию</label>
+          <input type="text" class="form-control" name="search" th:value="${search}" placeholder="Введите название товара...">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Поиск по артикулу</label>
+          <input type="text" class="form-control" name="arctical" th:value="${arctical}" placeholder="Введите артикул...">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Цена от</label>
+          <input type="number" class="form-control" name="minPrice" th:value="${minPrice}" placeholder="0">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Цена до</label>
+          <input type="number" class="form-control" name="maxPrice" th:value="${maxPrice}" placeholder="100000">
+        </div>
+        <div class="col-md-12">
+          <button type="submit" class="btn btn-primary">Применить фильтры</button>
+          <a th:href="@{/admin/items}" class="btn btn-outline-secondary">Сбросить</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Список товаров -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0" th:text="${searchType}">Все товары</h5>
+      <span class="badge bg-primary" th:text="${'Найдено: ' + totalItems}"></span>
+    </div>
+    <div class="card-body">
+      <div th:if="${#lists.isEmpty(items)}" class="text-center text-muted py-4">
+        <h4>😔 Товары не найдены</h4>
+        <p>Попробуйте изменить параметры поиска или <a th:href="@{/admin/items/create}">добавить новый товар</a></p>
+      </div>
+
+      <div th:if="${not #lists.isEmpty(items)}" class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Артикул</th>
+            <th>Название</th>
+            <th>Цена</th>
+            <th>Количество</th>
+            <th>Поставщик</th>
+            <th>Статус</th>
+            <th>Действия</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="item : ${items}">
+            <td th:text="${item.id}"></td>
+            <td>
+              <strong th:text="${item.arctical}"></strong>
+            </td>
+            <td th:text="${item.name}"></td>
+            <td>
+              <span class="fw-bold text-success" th:text="${'₽' + item.price}"></span>
+            </td>
+            <td>
+                                    <span th:if="${item.quantity > 0}"
+                                          class="badge bg-success"
+                                          th:text="${item.quantity}">
+                                    </span>
+              <span th:if="${item.quantity == 0}"
+                    class="badge bg-danger">
+                                        Нет в наличии
+                                    </span>
+            </td>
+            <td>
+              <small class="text-muted" th:text="${'ID: ' + item.supplierId}"></small>
+            </td>
+            <td>
+              <span th:if="${item.quantity > 10}" class="badge bg-success">Много</span>
+              <span th:if="${item.quantity > 0 && item.quantity <= 10}" class="badge bg-warning">Мало</span>
+              <span th:if="${item.quantity == 0}" class="badge bg-danger">Нет</span>
+            </td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <a th:href="@{/admin/items/edit/{id}(id=${item.id})}"
+                   class="btn btn-outline-warning">✏️</a>
+                <form th:action="@{/admin/items/delete/{id}(id=${item.id})}"
+                      method="post"
+                      class="d-inline"
+                      th:onsubmit="return confirm('Вы уверены, что хотите удалить этот товар?')">
+                  <button type="submit" class="btn btn-outline-danger">🗑️</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
