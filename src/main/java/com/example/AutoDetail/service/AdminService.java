@@ -4,11 +4,13 @@ import com.example.AutoDetail.entity.*;
 import com.example.AutoDetail.repository.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class AdminService {
 
     private final ItemRepository itemRepository;
@@ -26,7 +28,7 @@ public class AdminService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // === ТОВАРЫ (CRUD операции) ===
+    // === ТОВАРЫ ===
     public List<Item> getAllItems() {
         return itemRepository.findAll();
     }
@@ -35,7 +37,14 @@ public class AdminService {
         return itemRepository.findById(id);
     }
 
-    public Item saveItem(Item item) {
+    public Item saveItem(Item item, Long supplierId) {
+        // Находим поставщика
+        Optional<Supplier> supplierOpt = supplierRepository.findById(supplierId);
+        if (supplierOpt.isPresent()) {
+            item.setSupplier(supplierOpt.get());
+        } else {
+            throw new RuntimeException("Поставщик не найден");
+        }
         return itemRepository.save(item);
     }
 
@@ -47,15 +56,7 @@ public class AdminService {
         return itemRepository.findByNameContainingIgnoreCase(name);
     }
 
-    public List<Item> searchItemsByArctical(String arctical) {
-        return itemRepository.findByArcticalContainingIgnoreCase(arctical);
-    }
-
-    public List<Item> filterItemsByPrice(Double minPrice, Double maxPrice) {
-        return itemRepository.findByPriceRange(minPrice, maxPrice);
-    }
-
-    // === ПОСТАВЩИКИ (CRUD операции) ===
+    // === ПОСТАВЩИКИ ===
     public List<Supplier> getAllSuppliers() {
         return supplierRepository.findAll();
     }
@@ -76,11 +77,7 @@ public class AdminService {
         return supplierRepository.searchSuppliers(searchTerm);
     }
 
-    public List<Supplier> searchSuppliersByName(String name) {
-        return supplierRepository.findByNameContainingIgnoreCase(name);
-    }
-
-    // === МЕНЕДЖЕРЫ (CRUD операции) ===
+    // === МЕНЕДЖЕРЫ ===
     public List<User> getAllManagers() {
         return userRepository.findByRole(Role.ROLE_MANAGER);
     }
@@ -90,10 +87,8 @@ public class AdminService {
     }
 
     public User saveManager(User manager) {
-        // Шифруем пароль если он новый или изменен
-        if (manager.getId() == null || manager.getPassword().startsWith("$2a$")) {
-            // Пароль уже зашифрован
-        } else {
+        // Шифруем пароль
+        if (manager.getPassword() != null && !manager.getPassword().startsWith("$2a$")) {
             manager.setPassword(passwordEncoder.encode(manager.getPassword()));
         }
         manager.setRole(Role.ROLE_MANAGER);
@@ -111,6 +106,9 @@ public class AdminService {
     public boolean isLoginExists(String login, Long excludeId) {
         Optional<User> existingUser = userRepository.findByLogin(login);
         if (existingUser.isPresent()) {
+            if (excludeId == null) {
+                return true;
+            }
             return !existingUser.get().getId().equals(excludeId);
         }
         return false;
@@ -130,7 +128,6 @@ public class AdminService {
     }
 
     public long getTotalClients() {
-        // Здесь нужно добавить ClientRepository.count() когда будете его создавать
-        return 0; // временно
+        return userRepository.countByRole(Role.ROLE_CLIENT);
     }
 }

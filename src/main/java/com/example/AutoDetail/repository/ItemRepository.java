@@ -24,4 +24,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     // Фильтрация по наличию
     List<Item> findByQuantityGreaterThan(Integer quantity);
+
+    // Поиск по поставщику
+    List<Item> findBySupplierId(Long supplierId);
 }

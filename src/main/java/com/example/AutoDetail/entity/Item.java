@@ -9,8 +9,9 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ID_supplier")
-    private Long supplierId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
 
     private String arctical;
     private String name;
@@ -18,12 +19,24 @@ public class Item {
     private Integer quantity;
     private String image;
 
+    // Конструкторы
+    public Item() {}
+
+    public Item(String arctical, String name, Double price, Integer quantity, String image, Supplier supplier) {
+        this.arctical = arctical;
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
+        this.image = image;
+        this.supplier = supplier;
+    }
+
     // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public Long getSupplierId() { return supplierId; }
-    public void setSupplierId(Long supplierId) { this.supplierId = supplierId; }
+    public Supplier getSupplier() { return supplier; }
+    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
 
     public String getArctical() { return arctical; }
     public void setArctical(String arctical) { this.arctical = arctical; }
