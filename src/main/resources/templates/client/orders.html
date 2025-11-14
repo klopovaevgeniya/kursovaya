@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Мои заказы - AutoDetail</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link th:href="@{/css/style.css}" rel="stylesheet">
+  <style>
+    .order-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    .order-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+    }
+    .order-header {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f1f5f9;
+    }
+    .order-items {
+      margin-bottom: 1.5rem;
+    }
+    .order-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .order-item:last-child {
+      border-bottom: none;
+    }
+    .order-item-image {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #fef2f2, #f3e8ff);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #7c3aed;
+      margin-right: 1rem;
+    }
+    .status-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    .status-created { background: #dbeafe; color: #1e40af; }
+    .status-processing { background: #fef3c7; color: #92400e; }
+    .status-shipped { background: #d1fae5; color: #065f46; }
+    .status-delivered { background: #dcfce7; color: #166534; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .empty-orders {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .empty-orders-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    .empty-orders-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #374151;
+    }
+    .empty-orders-text {
+      color: #6b7280;
+      margin-bottom: 2rem;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark client-navbar">
+  <div class="container">
+    <a class="navbar-brand" th:href="@{/client/catalog}">🛠️ AutoDetail - Заказы</a>
+    <div class="navbar-nav ms-auto">
+      <a class="nav-link" th:href="@{/client/cart}">
+        🛒 Корзина
+        <span class="cart-counter badge bg-danger ms-1" th:if="${(cartItemsCount != null ? cartItemsCount : 0) > 0}" th:text="${cartItemsCount != null ? cartItemsCount : 0}"></span>
+      </a>
+      <a class="nav-link" th:href="@{/client/contact-managers}">👔 Менеджеры для связи</a>
+      <a class="nav-link active" th:href="@{/client/orders}">📦 Мои заказы</a>
+      <a class="nav-link" th:href="@{/client/profile}">👤 Профиль</a>
+      <span class="navbar-text client-user-info me-3">
+        Вы вошли как: <strong>Клиент</strong>
+      </span>
+      <!-- В навигации замените форму выхода на: -->
+      <form th:action="@{/auth/logout}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-outline-light btn-sm client-logout-btn">🚪 Выйти</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content client-orders">
+  <div class="container mt-4">
+    <!-- Заголовок -->
+    <div class="orders-header mb-4">
+      <div class="header-content">
+        <h1 class="orders-title">📦 Мои заказы</h1>
+        <p class="orders-subtitle">История ваших заказов и их текущий статус</p>
+      </div>
+    </div>
+
+    <!-- Список заказов -->
+    <div th:if="${not #lists.isEmpty(orders)}">
+      <div th:each="orderDetail : ${orders}" class="order-card">
+        <div class="order-header">
+          <div>
+            <h3 class="h5 mb-1">Заказ #<span th:text="${orderDetail.order.id}"></span></h3>
+            <p class="text-muted mb-0">
+              Оформлен:
+              <span th:text="${#temporals.format(orderDetail.order.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+            </p>
+          </div>
+          <div class="text-end">
+            <div class="status-badge" th:classappend="'status-' + ${orderDetail.status.status?.toLowerCase()}"
+                 th:text="${orderDetail.status.status} ?: 'Оформлен'"></div>
+            <div class="fw-bold text-danger mt-1" th:text="'₽' + ${#numbers.formatDecimal(orderDetail.order.totalAmount, 1, 2)}"></div>
+          </div>
+        </div>
+
+        <div class="order-items">
+          <div th:each="item : ${orderDetail.items}" class="order-item">
+            <div class="order-item-image">
+              <div th:if="${item.item.image != null && !item.item.image.isEmpty()}">
+                <img th:src="@{'/images/' + ${item.item.image}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+              </div>
+              <div th:if="${item.item.image == null || item.item.image.isEmpty()}">📦</div>
+            </div>
+            <div class="order-item-info flex-grow-1">
+              <h6 class="mb-1" th:text="${item.item.name}"></h6>
+              <p class="text-muted small mb-1" th:text="'Артикул: ' + ${item.item.arctical}"></p>
+            </div>
+            <div class="text-end">
+              <div class="fw-bold text-danger" th:text="'₽' + ${#numbers.formatDecimal(item.price, 1, 2)}"></div>
+              <div class="text-muted" th:text="'× ' + ${item.quantity}"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted" th:text="'Всего товаров: ' + ${#lists.size(orderDetail.items)}"></span>
+          <a th:href="@{'/client/order/' + ${orderDetail.order.id}}" class="btn btn-outline-primary">
+            📋 Подробнее
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Сообщение об отсутствии заказов -->
+    <div th:if="${#lists.isEmpty(orders)}" class="empty-orders">
+      <div class="empty-orders-icon">📦</div>
+      <h3 class="empty-orders-title">Заказы не найдены</h3>
+      <p class="empty-orders-text">
+        У вас пока нет оформленных заказов. Начните покупки в нашем каталоге!
+      </p>
+      <div class="empty-orders-actions">
+        <a th:href="@{/client/catalog}" class="btn btn-primary">🔧 Перейти в каталог</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:insert="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

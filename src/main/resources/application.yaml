@@ -12,7 +12,7 @@ spring:
       ddl-auto: update
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
@@ -32,10 +32,10 @@ spring:
 
 logging:
   level:
-    com.autodetail: INFO
+    com.example.AutoDetail: DEBUG
     org.springframework.security: DEBUG
-    org.hibernate.SQL: false  # измените на true для отладки SQL
-    org.hibernate.type.descriptor.sql.BasicBinder: false  # измените на true для отладки параметров SQL
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"

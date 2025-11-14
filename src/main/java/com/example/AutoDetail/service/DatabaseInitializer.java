@@ -2,7 +2,9 @@ package com.example.AutoDetail.service;
 
 import com.example.AutoDetail.entity.User;
 import com.example.AutoDetail.entity.Role;
+import com.example.AutoDetail.entity.OrderStatus;
 import com.example.AutoDetail.repository.UserRepository;
+import com.example.AutoDetail.repository.OrderStatusRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,10 +18,14 @@ public class DatabaseInitializer {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
 
     private final UserRepository userRepository;
+    private final OrderStatusRepository orderStatusRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public DatabaseInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public DatabaseInitializer(UserRepository userRepository,
+                               OrderStatusRepository orderStatusRepository,
+                               PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.orderStatusRepository = orderStatusRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -28,7 +34,7 @@ public class DatabaseInitializer {
         logger.info("=== Начало инициализации базы данных ===");
         createDefaultAdmin();
         createDefaultManager();
-        createTestClient();
+        createOrderStatuses();
         logger.info("=== Завершение инициализации базы данных ===");
     }
 
@@ -78,8 +84,28 @@ public class DatabaseInitializer {
         }
     }
 
-    private void createTestClient() {
-        logger.info("ℹ️ Клиенты могут зарегистрироваться через форму регистрации");
-        logger.info("📝 URL регистрации: http://localhost:8080/auth/register");
+    private void createOrderStatuses() {
+        if (orderStatusRepository.count() == 0) {
+            // Создаем три статуса заказа
+            OrderStatus status1 = new OrderStatus();
+            status1.setStatus("Оформлен");
+            status1.setComment("Заказ создан и ожидает обработки");
+
+            OrderStatus status2 = new OrderStatus();
+            status2.setStatus("Почти готов");
+            status2.setComment("Заказ собран и готов к выдаче");
+
+            OrderStatus status3 = new OrderStatus();
+            status3.setStatus("Выдан");
+            status3.setComment("Заказ выдан клиенту");
+
+            orderStatusRepository.save(status1);
+            orderStatusRepository.save(status2);
+            orderStatusRepository.save(status3);
+
+            logger.info("✅ Созданы статусы заказов: Оформлен, Почти готов, Выдан");
+        } else {
+            logger.info("ℹ️ Статусы заказов уже существуют в базе данных");
+        }
     }
 }

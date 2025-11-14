@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Связь с менеджерами</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link th:href="@{/css/style.css}" rel="stylesheet">
+  <style>
+    .search-filter-form {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .manager-card {
+      transition: all 0.3s ease;
+      border: none;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      border-radius: 12px;
+    }
+    .manager-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .manager-avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      margin: 0 auto 1rem;
+    }
+    .contact-info {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .contact-item:last-child {
+      margin-bottom: 0;
+    }
+    .contact-icon {
+      width: 20px;
+      margin-right: 10px;
+      text-align: center;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.7;
+    }
+    .empty-title {
+      color: #374151;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      font-size: 1.5rem;
+    }
+    .empty-text {
+      color: #6b7280;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .phone-link {
+      color: #198754;
+      text-decoration: none;
+    }
+    .phone-link:hover {
+      color: #146c43;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark client-navbar">
+  <div class="container">
+    <a class="navbar-brand" th:href="@{/client/catalog}">🛠️ AutoDetail - Менеджеры</a>
+    <div class="navbar-nav ms-auto">
+      <a class="nav-link active" th:href="@{/client/contact-managers}">👔 Менеджеры для связи</a>
+      <a class="nav-link" th:href="@{/client/cart}">
+        🛒 Корзина
+        <span class="cart-counter badge bg-danger ms-1" th:if="${cartItemsCount > 0}" th:text="${cartItemsCount}"></span>
+      </a>
+      <a class="nav-link" th:href="@{/client/orders}">📦 Мои заказы</a>
+      <a class="nav-link" th:href="@{/client/profile}">👤 Профиль</a>
+      <span class="navbar-text client-user-info me-3">
+        Вы вошли как: <strong th:text="${currentClientLogin}"></strong>
+      </span>
+      <form th:action="@{/auth/logout}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-outline-light btn-sm client-logout-btn">🚪 Выйти</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content">
+  <div class="container mt-4">
+    <!-- Заголовок -->
+    <div class="catalog-header">
+      <h1 class="catalog-title">👔 Связь с менеджерами</h1>
+      <p class="catalog-subtitle">Наши менеджеры всегда готовы помочь вам с выбором и ответить на вопросы</p>
+    </div>
+
+    <!-- Поиск и фильтры -->
+    <div class="search-filter-form">
+      <form th:action="@{/client/contact-managers}" method="get" class="row g-3 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">🔍 Поиск менеджеров</label>
+          <input type="text" class="form-control" name="search" th:value="${search}"
+                 placeholder="Введите имя, фамилию, телефон или описание...">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">📊 Сортировка</label>
+          <select name="sort" class="form-select">
+            <option value="">Без сортировки</option>
+            <option value="nameAsc" th:selected="${selectedSort == 'nameAsc'}">По имени (А-Я)</option>
+            <option value="nameDesc" th:selected="${selectedSort == 'nameDesc'}">По имени (Я-А)</option>
+            <option value="surnameAsc" th:selected="${selectedSort == 'surnameAsc'}">По фамилии (А-Я)</option>
+            <option value="surnameDesc" th:selected="${selectedSort == 'surnameDesc'}">По фамилии (Я-А)</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">Применить</button>
+          <a th:href="@{/client/contact-managers}" class="btn btn-outline-secondary w-100 mt-2">Сбросить</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Список менеджеров -->
+    <div th:if="${not #lists.isEmpty(managers)}">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <span class="text-muted fw-medium">Найдено менеджеров: <strong th:text="${#lists.size(managers)}"></strong></span>
+      </div>
+
+      <div class="row">
+        <div th:each="manager : ${managers}" class="col-xl-4 col-lg-6 col-md-6 mb-4">
+          <div class="card manager-card h-100">
+            <div class="card-body text-center">
+              <div class="manager-avatar">
+                <span th:if="${manager.name != null and manager.surname != null}"
+                      th:text="${#strings.substring(manager.name, 0, 1)} + ${#strings.substring(manager.surname, 0, 1)}"></span>
+                <span th:if="${manager.name == null or manager.surname == null}">👨‍💼</span>
+              </div>
+
+              <h5 class="card-title mb-1">
+                <span th:text="${manager.surname}"></span>
+                <span th:text="${manager.name}"></span>
+                <span th:if="${manager.patronymic != null}" th:text="' ' + ${manager.patronymic}"></span>
+              </h5>
+
+              <div class="mb-3">
+                <span class="badge bg-success">Менеджер</span>
+              </div>
+
+              <!-- Контактная информация -->
+              <div class="contact-info text-start">
+                <h6 class="fw-semibold mb-3">📞 Контактная информация:</h6>
+
+                <!-- Телефон -->
+                <div class="contact-item" th:if="${manager.phone != null and !manager.phone.isEmpty()}">
+                  <div class="contact-icon">📱</div>
+                  <div>
+                    <strong>Телефон:</strong>
+                    <div>
+                      <a th:href="'tel:' + ${manager.phone}" class="phone-link" th:text="${manager.phone}"></a>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div class="contact-item" th:if="${manager.description != null and manager.description.contains('email:')}">
+                  <div class="contact-icon">📧</div>
+                  <div>
+                    <strong>Email:</strong>
+                    <div th:text="${#strings.substringAfter(manager.description, 'email:')}"></div>
+                  </div>
+                </div>
+
+                <!-- График работы -->
+                <div class="contact-item" th:if="${manager.description != null and manager.description.contains('график:')}">
+                  <div class="contact-icon">🕒</div>
+                  <div>
+                    <strong>График работы:</strong>
+                    <div th:text="${#strings.substringAfter(manager.description, 'график:')}"></div>
+                  </div>
+                </div>
+
+                <!-- Общее описание -->
+                <div class="contact-item" th:if="${manager.description != null and !manager.description.contains('email:') and !manager.description.contains('график:')}">
+                  <div class="contact-icon">ℹ️</div>
+                  <div>
+                    <strong>Описание:</strong>
+                    <div th:text="${manager.description}"></div>
+                  </div>
+                </div>
+
+                <!-- Если нет контактной информации -->
+                <div class="contact-item" th:if="${(manager.phone == null or manager.phone.isEmpty()) and manager.description == null}">
+                  <div class="contact-icon">ℹ️</div>
+                  <div class="text-muted">Контактная информация уточняется</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Пустой список -->
+    <div th:if="${#lists.isEmpty(managers)}" class="empty-state">
+      <div class="empty-icon">😔</div>
+      <h3 class="empty-title">Менеджеры не найдены</h3>
+      <p class="empty-text" th:if="${search != null}">Попробуйте изменить параметры поиска</p>
+      <p class="empty-text" th:if="${search == null}">В данный момент нет доступных менеджеров</p>
+      <div class="empty-catalog-actions">
+        <a th:href="@{/client/contact-managers}" class="btn btn-primary">🔄 Сбросить фильтры</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для связи -->
+<div class="modal fade" id="contactModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Связь с менеджером</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Для связи с <span id="managerName"></span> используйте контактную информацию:</p>
+        <div class="contact-details mt-3">
+          <p th:if="${manager.phone != null}"><strong>Телефон:</strong> <span id="managerPhone"></span></p>
+          <p class="mt-2">Вы можете позвонить по указанному телефону из карточки менеджера.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        <a id="callButton" href="#" class="btn btn-success">📞 Позвонить</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Функция показа модального окна
+  function showContactModal(name, surname, phone) {
+      const managerName = name + ' ' + surname;
+      document.getElementById('managerName').textContent = managerName;
+
+      if (phone) {
+          document.getElementById('managerPhone').textContent = phone;
+          document.getElementById('callButton').href = 'tel:' + phone;
+          document.getElementById('callButton').style.display = 'inline-block';
+      } else {
+          document.getElementById('managerPhone').textContent = 'не указан';
+          document.getElementById('callButton').style.display = 'none';
+      }
+
+      const modal = new bootstrap.Modal(document.getElementById('contactModal'));
+      modal.show();
+  }
+
+  // Обработчик для кнопок связи
+  document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.contact-btn').forEach(button => {
+          button.addEventListener('click', function() {
+              const name = this.getAttribute('data-manager-name');
+              const surname = this.getAttribute('data-manager-surname');
+              const phone = this.getAttribute('data-manager-phone');
+              showContactModal(name, surname, phone);
+          });
+      });
+  });
+
+  // Автопоиск при вводе
+  let searchTimeout;
+  document.querySelector('input[name="search"]')?.addEventListener('input', function(e) {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+          this.form.submit();
+      }, 800);
+  });
+
+  // Поиск при изменении сортировки
+  document.querySelector('select[name="sort"]')?.addEventListener('change', function(e) {
+      this.form.submit();
+  });
+</script>
+</body>
+</html>

@@ -11,14 +11,23 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    // Поиск по ID клиента
+    // Базовые методы поиска
     List<Order> findByClientId(Long clientId);
-
-    // Поиск по статусу
     List<Order> findByStatusId(Long statusId);
 
     // Поиск заказов за период
     @Query("SELECT o FROM Order o WHERE o.createdAt BETWEEN :startDate AND :endDate")
     List<Order> findOrdersByDateRange(@Param("startDate") java.time.LocalDateTime startDate,
                                       @Param("endDate") java.time.LocalDateTime endDate);
+
+    // УЛУЧШЕННЫЙ поиск заказов
+    @Query("SELECT o FROM Order o WHERE " +
+            "CAST(o.id AS string) LIKE CONCAT('%', :searchTerm, '%') OR " +
+            "CAST(o.clientId AS string) LIKE CONCAT('%', :searchTerm, '%') OR " +
+            "CAST(o.totalAmount AS string) LIKE CONCAT('%', :searchTerm, '%')")
+    List<Order> searchOrders(@Param("searchTerm") String searchTerm);
+
+    // Поиск заказов с информацией о клиенте
+    @Query("SELECT o FROM Order o WHERE o.id = :orderId")
+    List<Order> findOrderById(@Param("orderId") Long orderId);
 }

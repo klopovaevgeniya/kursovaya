@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title}">Детали клиента</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" th:href="@{/manager/dashboard}">🛠️ AutoDetail - Менеджер</a>
+    <div class="navbar-nav">
+      <a class="nav-link" th:href="@{/manager/items}">📦 Товары</a>
+      <a class="nav-link active" th:href="@{/manager/clients}">👥 Клиенты</a>
+      <a class="nav-link" th:href="@{/manager/orders}">📋 Заказы</a>
+    </div>
+    <div class="navbar-nav ms-auto">
+            <span class="navbar-text me-3">
+                Вы вошли как: <strong>Менеджер</strong>
+            </span>
+      <form th:action="@{/auth/logout}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-outline-light btn-sm client-logout-btn">🚪 Выйти</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1>👤 Детальная информация о клиенте</h1>
+      <p class="text-muted">Полные данные клиента и информация о его машине</p>
+    </div>
+    <a th:href="@{/manager/clients}" class="btn btn-outline-secondary">
+      ← Назад к списку клиентов
+    </a>
+  </div>
+
+  <!-- Карточка с информацией о клиенте -->
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card">
+        <div class="card-body">
+          <!-- Основная информация -->
+          <div class="mb-4">
+            <h5 class="card-title border-bottom pb-2">👤 Основная информация</h5>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label fw-bold">ID клиента:</label>
+                  <div th:text="${client.id}" class="form-control-plaintext"></div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Фамилия:</label>
+                  <div th:text="${client.surname}" class="form-control-plaintext"></div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Имя:</label>
+                  <div th:text="${client.name}" class="form-control-plaintext"></div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Отчество:</label>
+                  <div th:text="${client.patronymic != null ? client.patronymic : 'Не указано'}"
+                       class="form-control-plaintext"></div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Телефон:</label>
+                  <div th:text="${client.phone}" class="form-control-plaintext"></div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Email:</label>
+                  <div th:text="${client.email != null ? client.email : 'Не указан'}"
+                       class="form-control-plaintext"></div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Логин:</label>
+                  <code th:text="${client.login}" class="form-control-plaintext"></code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Информация о машине -->
+          <div class="mb-4">
+            <h5 class="card-title border-bottom pb-2">🚗 Информация о машине</h5>
+            <div th:if="${client.car != null}" class="car-info">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">ID машины:</label>
+                    <div th:text="${client.car.id}" class="form-control-plaintext"></div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Марка:</label>
+                    <div th:text="${client.car.carBrand != null ? client.car.carBrand : 'Не указано'}"
+                         class="form-control-plaintext"></div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">Модель:</label>
+                    <div th:text="${client.car.carModel != null ? client.car.carModel : 'Не указано'}"
+                         class="form-control-plaintext"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div th:if="${client.car == null}" class="no-car-info">
+              <div class="alert alert-info">
+                <div class="d-flex align-items-center">
+                  <span class="me-3">❌</span>
+                  <div>
+                    <h6 class="alert-heading mb-1">Информация о машине отсутствует</h6>
+                    <p class="mb-0">У этого клиента нет привязанной машины</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопки действий -->
+          <div class="border-top pt-3">
+            <div class="d-flex gap-2">
+              <a th:href="@{/manager/orders(clientId=${client.id})}"
+                 class="btn btn-primary">
+                📋 Просмотреть заказы клиента
+              </a>
+              <a th:href="@{/manager/clients}" class="btn btn-outline-secondary">
+                ← Назад к списку
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

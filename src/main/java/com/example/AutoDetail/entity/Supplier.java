@@ -1,6 +1,7 @@
 package com.example.AutoDetail.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +12,15 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Название компании обязательно")
+    @Size(min = 2, max = 255, message = "Название должно быть от 2 до 255 символов")
     private String name;
+
+    @NotBlank(message = "Контактный телефон обязателен")
+    @Pattern(regexp = "^[\\+]?[0-9\\-\\(\\)\\s]{7,15}$", message = "Неверный формат телефона")
     private String contactPhone;
+
+    @Email(message = "Неверный формат email")
     private String contactEmail;
 
     @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

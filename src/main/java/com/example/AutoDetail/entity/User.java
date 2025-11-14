@@ -1,7 +1,7 @@
 package com.example.AutoDetail.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "users")
@@ -11,29 +11,40 @@ public class User {
     private Long id;
 
     @NotBlank(message = "Имя обязательно")
+    @Size(min = 2, max = 50, message = "Имя должно быть от 2 до 50 символов")
     private String name;
 
     @NotBlank(message = "Фамилия обязательна")
+    @Size(min = 2, max = 50, message = "Фамилия должна быть от 2 до 50 символов")
     private String surname;
 
+    @Size(max = 50, message = "Отчество не должно превышать 50 символов")
     private String patronymic;
 
     @NotBlank(message = "Логин обязателен")
+    @Size(min = 3, max = 50, message = "Логин должен быть от 3 до 50 символов")
+    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Логин может содержать только буквы, цифры и подчеркивания")
     @Column(unique = true)
     private String login;
 
     @NotBlank(message = "Пароль обязателен")
+    @Size(min = 6, message = "Пароль должен быть не менее 6 символов")
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Роль обязательна")
     private Role role;
 
+    @Size(max = 500, message = "Описание не должно превышать 500 символов")
     private String description;
+
+    @Pattern(regexp = "^[\\+]?[0-9\\-\\(\\)\\s]{7,15}$", message = "Неверный формат телефона")
+    private String phone;
 
     // Конструкторы
     public User() {}
 
-    public User(String name, String surname, String patronymic, String login, String password, Role role, String description) {
+    public User(String name, String surname, String patronymic, String login, String password, Role role, String description, String phone) {
         this.name = name;
         this.surname = surname;
         this.patronymic = patronymic;
@@ -41,6 +52,7 @@ public class User {
         this.password = password;
         this.role = role;
         this.description = description;
+        this.phone = phone;
     }
 
     // Геттеры и сеттеры
@@ -68,12 +80,13 @@ public class User {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    // Статический метод для builder (альтернатива Lombok)
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
     public static UserBuilder builder() {
         return new UserBuilder();
     }
 
-    // Builder класс
     public static class UserBuilder {
         private Long id;
         private String name;
@@ -83,6 +96,7 @@ public class User {
         private String password;
         private Role role;
         private String description;
+        private String phone;
 
         public UserBuilder id(Long id) { this.id = id; return this; }
         public UserBuilder name(String name) { this.name = name; return this; }
@@ -92,6 +106,7 @@ public class User {
         public UserBuilder password(String password) { this.password = password; return this; }
         public UserBuilder role(Role role) { this.role = role; return this; }
         public UserBuilder description(String description) { this.description = description; return this; }
+        public UserBuilder phone(String phone) { this.phone = phone; return this; }
 
         public User build() {
             User user = new User();
@@ -103,6 +118,7 @@ public class User {
             user.setPassword(this.password);
             user.setRole(this.role);
             user.setDescription(this.description);
+            user.setPhone(this.phone);
             return user;
         }
     }

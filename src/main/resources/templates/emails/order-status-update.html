@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Статус заказа изменен - AutoDetail</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header h2 {
+            margin: 10px 0 0 0;
+            font-size: 20px;
+            font-weight: 300;
+        }
+        .content {
+            padding: 30px;
+        }
+        .status-info {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+            border-radius: 4px;
+        }
+        .order-details {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 14px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        .btn {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .info-value {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🛠️ AutoDetail</h1>
+        <h2>Статус вашего заказа обновлен</h2>
+    </div>
+
+    <div class="content">
+        <p>Уважаемый <strong th:text="${clientName}"></strong>,</p>
+
+        <p>Статус вашего заказа был изменен. Вот актуальная информация:</p>
+
+        <div class="order-details">
+            <h3 style="margin-top: 0; color: #28a745;">Информация о заказе</h3>
+
+            <div class="info-item">
+                <span class="info-label">Номер заказа:</span>
+                <span class="info-value" th:text="${'№' + orderId}"></span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Новый статус:</span>
+                <span class="info-value">
+                        <span class="status-badge" th:text="${newStatus}"></span>
+                    </span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Дата обновления:</span>
+                <span class="info-value" th:text="${#temporals.format(#temporals.createNow(), 'dd.MM.yyyy HH:mm')}"></span>
+            </div>
+        </div>
+
+        <div class="status-info">
+            <h4 style="margin-top: 0; color: #495057;">Что означает этот статус?</h4>
+
+            <div th:switch="${newStatus}">
+                <p th:case="'Оформлен'">
+                    ✅ <strong>Заказ принят:</strong> Ваш заказ успешно оформлен и ожидает обработки менеджером.
+                </p>
+                <p th:case="'В обработке'">
+                    🔄 <strong>В обработке:</strong> Менеджер проверяет наличие товаров и формирует заказ.
+                </p>
+                <p th:case="'Собирается'">
+                    📦 <strong>Собирается:</strong> Ваш заказ формируется на складе и готовится к отправке.
+                </p>
+                <p th:case="'Готов к выдаче'">
+                    🚗 <strong>Готов к выдаче:</strong> Заказ собран и ожидает вас в пункте выдачи.
+                </p>
+                <p th:case="'Выдан'">
+                    🎉 <strong>Выдан:</strong> Заказ успешно получен. Благодарим за покупку!
+                </p>
+                <p th:case="'Отменен'">
+                    ❌ <strong>Отменен:</strong> Заказ был отменен. Для уточнения деталей свяжитесь с менеджером.
+                </p>
+                <p th:case="*">
+                    ℹ️ <strong>Информация:</strong> Статус вашего заказа был обновлен.
+                </p>
+            </div>
+        </div>
+
+        <p>Мы продолжаем работать над вашим заказом и уведомим вас о следующих изменениях.</p>
+
+        <p>Если у вас возникли вопросы, пожалуйста, свяжитесь с нами:</p>
+        <p>📞 Телефон: +7 (XXX) XXX-XX-XX</p>
+        <p>📧 Email: support@autodetail.ru</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="https://autodetail.ru/orders" class="btn">Просмотреть заказ</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>С уважением,<br>Команда AutoDetail</strong></p>
+        <p>🛠️ Профессиональный сервис автомобильных деталей</p>
+        <p style="font-size: 12px; color: #868e96;">
+            Это письмо отправлено автоматически. Пожалуйста, не отвечайте на него.
+        </p>
+    </div>
+</div>
+</body>
+</html>

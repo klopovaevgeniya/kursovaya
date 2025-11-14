@@ -4,29 +4,409 @@
     <meta charset="UTF-8">
     <title>Панель менеджера</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .manager-dashboard {
+            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .manager-header {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-left: 6px solid #7c3aed;
+        }
+
+        .manager-title {
+            background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .manager-subtitle {
+            color: #64748b;
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s ease;
+            border-left: 5px solid;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .stat-card.primary { border-left-color: #7c3aed; }
+        .stat-card.success { border-left-color: #10b981; }
+        .stat-card.info { border-left-color: #06b6d4; }
+
+        .stat-icon {
+            font-size: 3rem;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            color: white;
+        }
+
+        .stat-card.primary .stat-icon {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        }
+        .stat-card.success .stat-icon {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+        .stat-card.info .stat-icon {
+            background: linear-gradient(135deg, #06b6d4, #22d3ee);
+        }
+
+        .stat-content h3 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin: 0;
+            color: #1f2937;
+        }
+
+        .stat-content p {
+            color: #6b7280;
+            font-weight: 600;
+            margin: 0.25rem 0 0 0;
+            font-size: 1.1rem;
+        }
+
+        .stats-trend {
+            color: #9ca3af;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            display: block;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .content-header {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-title {
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        .content-body {
+            padding: 2rem;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid #7c3aed;
+            color: #7c3aed;
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .empty-content {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .empty-text {
+            font-size: 1.1rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .order-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #7c3aed;
+            transition: all 0.3s ease;
+        }
+
+        .order-item:hover {
+            background: #f1f5f9;
+            transform: translateX(5px);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-number {
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .order-client {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .order-meta {
+            text-align: right;
+        }
+
+        .order-amount {
+            font-weight: 700;
+            color: #dc2626;
+            font-size: 1.2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .order-date {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .order-status {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .actions-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .actions-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .actions-header {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+
+        .actions-title {
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        .actions-body {
+            padding: 2rem;
+        }
+
+        .action-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            font-weight: 600;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: #f8fafc;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-btn.primary:hover {
+            color: white;
+        }
+
+        .action-btn.secondary:hover {
+            background: #f1f5f9;
+            border-color: #d1d5db;
+        }
+
+        .action-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .action-btn.secondary .action-icon {
+            background: #e5e7eb;
+        }
+
+        .action-text {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .order-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .order-meta {
+                text-align: left;
+            }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark manager-navbar">
     <div class="container">
         <a class="navbar-brand" th:href="@{/manager/dashboard}">🛠️ AutoDetail - Менеджер</a>
         <div class="navbar-nav">
-            <a class="nav-link" th:href="@{/manager/dashboard}">Главная</a>
-            <a class="nav-link" th:href="@{/manager/items}">Товары</a>
-            <a class="nav-link" th:href="@{/manager/clients}">Клиенты</a>
-            <a class="nav-link" th:href="@{/manager/orders}">Заказы</a>
-            <a class="nav-link" th:href="@{/manager/messages}">
-                Сообщения
-                <span th:if="${unreadMessages > 0}" class="badge bg-danger" th:text="${unreadMessages}"></span>
-            </a>
+            <a class="nav-link" th:href="@{/manager/items}">📦 Товары</a>
+            <a class="nav-link" th:href="@{/manager/clients}">👥 Клиенты</a>
+            <a class="nav-link" th:href="@{/manager/orders}">📋 Заказы</a>
         </div>
         <div class="navbar-nav ms-auto">
-                <span class="navbar-text text-light me-3">
-                    Вы вошли как: <strong>Менеджер</strong>
-                </span>
+            <span class="navbar-text manager-user-info me-3">
+                Вы вошли как: <strong>Менеджер</strong>
+            </span>
             <form th:action="@{/auth/logout}" method="post" class="d-inline">
-                <button type="submit" class="btn btn-outline-light btn-sm">
+                <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : ''}" th:value="${_csrf != null ? _csrf.token : ''}"/>
+                <button type="submit" class="btn btn-outline-light btn-sm manager-logout-btn">
                     🚪 Выйти
                 </button>
             </form>
@@ -34,147 +414,100 @@
     </div>
 </nav>
 
-<div class="container mt-4">
-    <!-- Статистика -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 th:text="${totalOrders}">0</h4>
-                            <p class="mb-0">Всего заказов</p>
-                        </div>
-                        <div class="align-self-center">
-                            <span class="h2">📦</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="manager-dashboard">
+    <div class="container py-5">
+        <!-- Заголовок -->
+        <div class="manager-header">
+            <h1 class="manager-title">📊 Панель менеджера</h1>
+            <p class="manager-subtitle">Обзор активности и управление заказами</p>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 th:text="${totalClients}">0</h4>
-                            <p class="mb-0">Клиентов</p>
-                        </div>
-                        <div class="align-self-center">
-                            <span class="h2">👥</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 th:text="${unreadMessages}">0</h4>
-                            <p class="mb-0">Новых сообщений</p>
-                        </div>
-                        <div class="align-self-center">
-                            <span class="h2">✉️</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 th:text="${#lists.size(recentOrders)}">0</h4>
-                            <p class="mb-0">Новых заказов</p>
-                        </div>
-                        <div class="align-self-center">
-                            <span class="h2">🆕</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <!-- Последние заказы -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Последние заказы</h5>
-                    <a th:href="@{/manager/orders}" class="btn btn-sm btn-outline-primary">Все заказы</a>
+        <!-- Статистика -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-icon">📦</div>
+                <div class="stat-content">
+                    <h3 th:text="${totalOrders != null ? totalOrders : 0}">0</h3>
+                    <p>Всего заказов</p>
+                    <small class="stats-trend">📈 +5 за неделю</small>
                 </div>
-                <div class="card-body">
-                    <div th:if="${#lists.isEmpty(recentOrders)}" class="text-center text-muted">
-                        <p>Заказов пока нет</p>
-                    </div>
-                    <div th:each="order : ${recentOrders}" class="border-bottom pb-2 mb-2">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>Заказ #<span th:text="${order.id}"></span></strong>
-                                <br>
-                                <small class="text-muted">Клиент ID: <span th:text="${order.clientId}"></span></small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-success" th:text="${'₽' + order.totalAmount}"></span>
-                                <br>
-                                <small th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></small>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <h3 th:text="${totalClients != null ? totalClients : 0}">0</h3>
+                    <p>Активных клиентов</p>
+                    <small class="stats-trend">📈 +3 новых</small>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">🆕</div>
+                <div class="stat-content">
+                    <h3 th:text="${#lists.size(recentOrders != null ? recentOrders : {})}">0</h3>
+                    <p>Новых заказов</p>
+                    <small class="stats-trend">🕒 За сегодня</small>
                 </div>
             </div>
         </div>
 
-        <!-- Последние сообщения -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Последние сообщения</h5>
-                    <a th:href="@{/manager/messages}" class="btn btn-sm btn-outline-primary">Все сообщения</a>
+        <!-- Основной контент -->
+        <div class="content-grid">
+            <!-- Последние заказы -->
+            <div class="content-card">
+                <div class="content-header">
+                    <h5 class="content-title">📋 Последние заказы</h5>
+                    <a th:href="@{/manager/orders}" class="btn btn-outline-primary">Все заказы →</a>
                 </div>
-                <div class="card-body">
-                    <div th:if="${#lists.isEmpty(latestMessages)}" class="text-center text-muted">
-                        <p>Сообщений пока нет</p>
+                <div class="content-body">
+                    <div th:if="${#lists.isEmpty(recentOrders != null ? recentOrders : {})}" class="empty-content">
+                        <div class="empty-icon">📦</div>
+                        <p class="empty-text">Заказов пока нет</p>
                     </div>
-                    <div th:each="message : ${latestMessages}" class="border-bottom pb-2 mb-2">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <strong th:text="${message.clientName}"></strong>
-                                <br>
-                                <small class="text-muted" th:text="${message.message}"></small>
+                    <div th:each="order : ${recentOrders != null ? recentOrders : {}}" class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <strong class="order-number">Заказ #<span th:text="${order.id != null ? order.id : ''}"></span></strong>
+                                <span class="order-client">Клиент ID: <span th:text="${order.clientId != null ? order.clientId : ''}"></span></span>
                             </div>
-                            <span th:if="${!message.isRead}" class="badge bg-danger">NEW</span>
+                            <div class="order-meta">
+                                <span class="order-amount" th:text="${'₽' + (order.totalAmount != null ? order.totalAmount : 0)}"></span>
+                                <span class="order-date" th:text="${order.createdAt != null ? #temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm') : ''}"></span>
+                            </div>
                         </div>
-                        <small class="text-muted" th:text="${#temporals.format(message.createdAt, 'dd.MM.yyyy HH:mm')}"></small>
+                        <div class="order-status">
+                            <span class="status-badge pending">В обработке</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Быстрые действия -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Быстрые действия</h5>
+            <!-- Быстрые действия -->
+            <div class="actions-card">
+                <div class="actions-header">
+                    <h5 class="actions-title">🚀 Быстрые действия</h5>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex">
-                        <a th:href="@{/manager/orders/create}" class="btn btn-primary">➕ Создать заказ</a>
-                        <a th:href="@{/manager/items}" class="btn btn-outline-secondary">📦 Просмотреть товары</a>
-                        <a th:href="@{/manager/clients}" class="btn btn-outline-secondary">👥 Список клиентов</a>
-                        <a th:href="@{/manager/messages}" class="btn btn-outline-warning">✉️ Сообщения</a>
+                <div class="actions-body">
+                    <div class="action-buttons-grid">
+                        <a th:href="@{/manager/orders/create}" class="action-btn primary">
+                            <span class="action-icon">➕</span>
+                            <span class="action-text">Создать заказ</span>
+                        </a>
+                        <a th:href="@{/manager/items}" class="action-btn secondary">
+                            <span class="action-icon">📦</span>
+                            <span class="action-text">Просмотреть товары</span>
+                        </a>
+                        <a th:href="@{/manager/clients}" class="action-btn secondary">
+                            <span class="action-icon">👥</span>
+                            <span class="action-text">Список клиентов</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div th:insert="~{fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

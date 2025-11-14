@@ -1,9 +1,13 @@
 package com.example.AutoDetail.controller.manager;
 
+import com.example.AutoDetail.dto.OrderItemDto;
 import com.example.AutoDetail.entity.*;
 import com.example.AutoDetail.service.ManagerService;
+import com.example.AutoDetail.service.EmailService;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -16,33 +20,27 @@ import java.util.Optional;
 public class ManagerController {
 
     private final ManagerService managerService;
+    private final EmailService emailService;
 
-    public ManagerController(ManagerService managerService) {
+    public ManagerController(ManagerService managerService, EmailService emailService) {
         this.managerService = managerService;
+        this.emailService = emailService;
     }
 
     // === ГЛАВНАЯ ПАНЕЛЬ ===
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         try {
-            long unreadMessages = managerService.getUnreadMessagesCount();
             List<Order> allOrders = managerService.getAllOrders();
-            List<CustomerMessage> recentMessages = managerService.getAllMessages();
 
-            // Берем только последние 5 заказов
-            List<Order> recentOrders = allOrders.size() > 5 ?
-                    allOrders.subList(0, 5) : allOrders;
-
-            // Берем только последние 3 сообщения
-            List<CustomerMessage> latestMessages = recentMessages.size() > 3 ?
-                    recentMessages.subList(0, 3) : recentMessages;
+            List<Order> recentOrders = allOrders.size() > 5 ? allOrders.subList(0, 5) : allOrders;
 
             model.addAttribute("title", "Панель менеджера");
-            model.addAttribute("unreadMessages", unreadMessages);
             model.addAttribute("recentOrders", recentOrders);
-            model.addAttribute("latestMessages", latestMessages);
             model.addAttribute("totalOrders", allOrders.size());
             model.addAttribute("totalClients", managerService.getAllClients().size());
+            model.addAttribute("managerService", managerService);
+            model.addAttribute("currentManager", managerService.getCurrentUser().orElse(null));
 
             return "manager/dashboard";
         } catch (Exception e) {
@@ -61,22 +59,22 @@ public class ManagerController {
                             Model model) {
         try {
             List<Item> items;
+            String searchType = "все товары";
 
             if (search != null && !search.isEmpty()) {
-                items = managerService.searchItemsByName(search);
-                model.addAttribute("searchType", "по названию: " + search);
+                items = managerService.searchItems(search);
+                searchType = "Результаты поиска: " + search;
             } else if (arctical != null && !arctical.isEmpty()) {
                 items = managerService.searchItemsByArctical(arctical);
-                model.addAttribute("searchType", "по артикулу: " + arctical);
+                searchType = "По артикулу: " + arctical;
             } else if (minPrice != null && maxPrice != null) {
                 items = managerService.filterItemsByPrice(minPrice, maxPrice);
-                model.addAttribute("searchType", "по цене: от " + minPrice + " до " + maxPrice);
+                searchType = "По цене: от " + minPrice + " до " + maxPrice;
             } else if (availableOnly != null && availableOnly) {
                 items = managerService.getAvailableItems();
-                model.addAttribute("searchType", "только в наличии");
+                searchType = "Только в наличии";
             } else {
                 items = managerService.getAllItems();
-                model.addAttribute("searchType", "все товары");
             }
 
             model.addAttribute("items", items);
@@ -85,6 +83,7 @@ public class ManagerController {
             model.addAttribute("minPrice", minPrice);
             model.addAttribute("maxPrice", maxPrice);
             model.addAttribute("availableOnly", availableOnly);
+            model.addAttribute("searchType", searchType);
             model.addAttribute("totalItems", items.size());
 
             return "manager/items";
@@ -100,11 +99,11 @@ public class ManagerController {
                               Model model) {
         try {
             List<Client> clients;
-            String searchType = "все клиенты";
+            String searchType = "Все клиенты";
 
             if (search != null && !search.isEmpty()) {
                 clients = managerService.searchClients(search);
-                searchType = "результаты поиска: " + search;
+                searchType = "Результаты поиска: " + search;
             } else {
                 clients = managerService.getAllClients();
             }
@@ -121,6 +120,25 @@ public class ManagerController {
         }
     }
 
+    // === ПРОСМОТР ДЕТАЛЕЙ КЛИЕНТА ===
+    @GetMapping("/clients/{id}")
+    public String viewClientDetails(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            Optional<Client> clientOpt = managerService.getClientById(id);
+            if (clientOpt.isPresent()) {
+                Client client = clientOpt.get();
+                model.addAttribute("client", client);
+                model.addAttribute("title", "Детали клиента - " + client.getName() + " " + client.getSurname());
+                return "manager/client-details";
+            }
+            redirectAttributes.addFlashAttribute("error", "Клиент не найден");
+            return "redirect:/manager/clients";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка загрузки деталей клиента: " + e.getMessage());
+            return "redirect:/manager/clients";
+        }
+    }
+
     // === ЗАКАЗЫ (CRUD операции) ===
     @GetMapping("/orders")
     public String ordersPage(@RequestParam(value = "clientId", required = false) Long clientId,
@@ -129,45 +147,48 @@ public class ManagerController {
                              Model model) {
         try {
             List<Order> orders;
-            String filterInfo = "все заказы";
+            String filterInfo = "Все заказы";
 
             if (clientId != null) {
                 Optional<Client> client = managerService.getClientById(clientId);
                 orders = managerService.getOrdersByClientId(clientId);
                 if (client.isPresent()) {
-                    filterInfo = "заказы клиента: " + client.get().getName() + " " + client.get().getSurname();
+                    filterInfo = "Заказы клиента: " + managerService.getClientShortName(clientId);
                 }
             } else if (statusId != null) {
                 Optional<OrderStatus> status = managerService.getStatusById(statusId);
                 orders = managerService.getOrdersByStatus(statusId);
                 if (status.isPresent()) {
-                    filterInfo = "заказы со статусом: " + status.get().getStatus();
+                    filterInfo = "Заказы со статусом: " + status.get().getStatus();
                 }
             } else {
                 orders = managerService.getAllOrders();
             }
 
-            // Поиск по ID заказа
+            // Улучшенный поиск по ID заказа и другим полям
             if (search != null && !search.isEmpty()) {
                 try {
                     Long orderId = Long.parseLong(search);
                     Optional<Order> foundOrder = managerService.getOrderById(orderId);
                     if (foundOrder.isPresent()) {
                         orders = List.of(foundOrder.get());
-                        filterInfo = "заказ №" + search;
+                        filterInfo = "Заказ №" + search;
                     } else {
-                        orders = List.of();
-                        filterInfo = "заказ №" + search + " не найден";
+                        // Если не нашли по ID, ищем по другим полям
+                        orders = managerService.searchOrders(search);
+                        filterInfo = "Результаты поиска: " + search;
                     }
                 } catch (NumberFormatException e) {
-                    orders = List.of();
-                    filterInfo = "неверный номер заказа";
+                    // Поиск по другим полям если не число
+                    orders = managerService.searchOrders(search);
+                    filterInfo = "Результаты поиска: " + search;
                 }
             }
 
             List<OrderStatus> statuses = managerService.getAllStatuses();
             List<Client> clients = managerService.getAllClients();
 
+            model.addAttribute("managerService", managerService);
             model.addAttribute("orders", orders);
             model.addAttribute("statuses", statuses);
             model.addAttribute("clients", clients);
@@ -184,20 +205,29 @@ public class ManagerController {
         }
     }
 
-    // Форма создания заказа
+    // Форма создания заказа с товарами
     @GetMapping("/orders/create")
     public String createOrderForm(Model model) {
         try {
             List<OrderStatus> statuses = managerService.getAllStatuses();
             List<Client> clients = managerService.getAllClients();
+            List<Item> availableItems = managerService.getAvailableItems();
 
             Order newOrder = new Order();
             newOrder.setCreatedAt(LocalDateTime.now());
 
+            // Автоматически подставляем текущего менеджера
+            Long currentManagerId = managerService.getCurrentUserId();
+            newOrder.setUserId(currentManagerId);
+
             model.addAttribute("order", newOrder);
             model.addAttribute("statuses", statuses);
             model.addAttribute("clients", clients);
+            model.addAttribute("availableItems", availableItems);
             model.addAttribute("isEdit", false);
+            model.addAttribute("managerService", managerService);
+            model.addAttribute("currentManagerId", currentManagerId);
+            model.addAttribute("currentManager", managerService.getCurrentUser().orElse(null));
 
             return "manager/order-form";
         } catch (Exception e) {
@@ -206,134 +236,154 @@ public class ManagerController {
         }
     }
 
-    // Создание заказа
-    @PostMapping("/orders")
-    public String createOrder(@ModelAttribute Order order, RedirectAttributes redirectAttributes, Model model) {
+    // Создание заказа с товарами
+    @PostMapping("/orders/create-with-items")
+    public String createOrderWithItems(@Valid @ModelAttribute Order order,
+                                       BindingResult bindingResult,
+                                       @RequestParam("statusId") Long statusId,
+                                       @RequestParam("orderItems") String orderItemsJson,
+                                       Model model,
+                                       RedirectAttributes redirectAttributes) {
         try {
-            // Валидация обязательных полей
-            if (order.getClientId() == null) {
-                model.addAttribute("error", "Клиент обязателен для заполнения");
+            if (bindingResult.hasErrors()) {
                 List<OrderStatus> statuses = managerService.getAllStatuses();
                 List<Client> clients = managerService.getAllClients();
+                List<Item> availableItems = managerService.getAvailableItems();
+
                 model.addAttribute("statuses", statuses);
                 model.addAttribute("clients", clients);
-                model.addAttribute("order", order);
+                model.addAttribute("availableItems", availableItems);
                 model.addAttribute("isEdit", false);
+                model.addAttribute("managerService", managerService);
+                model.addAttribute("currentManagerId", managerService.getCurrentUserId());
+                model.addAttribute("currentManager", managerService.getCurrentUser().orElse(null));
+
                 return "manager/order-form";
             }
 
-            if (order.getTotalAmount() == null || order.getTotalAmount() <= 0) {
-                model.addAttribute("error", "Сумма заказа должна быть положительным числом");
+            order.setStatusId(statusId);
+
+            // Парсим товары заказа
+            List<OrderItemDto> orderItems = managerService.parseOrderItems(orderItemsJson);
+
+            // Получаем ID текущего менеджера
+            Long currentManagerId = managerService.getCurrentUserId();
+
+            // Создаем заказ с товарами
+            Order createdOrder = managerService.createOrderWithItems(order, orderItems, currentManagerId);
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Заказ №" + createdOrder.getId() + " успешно создан. Сумма: " + createdOrder.getTotalAmount() + " ₽");
+            return "redirect:/manager/orders";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка создания заказа: " + e.getMessage());
+            return "redirect:/manager/orders/create";
+        }
+    }
+
+    // Старый метод для обратной совместимости
+    @PostMapping("/orders")
+    public String createOrder(@Valid @ModelAttribute Order order,
+                              BindingResult bindingResult,
+                              @RequestParam("statusId") Long statusId,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            if (bindingResult.hasErrors()) {
                 List<OrderStatus> statuses = managerService.getAllStatuses();
                 List<Client> clients = managerService.getAllClients();
+
                 model.addAttribute("statuses", statuses);
                 model.addAttribute("clients", clients);
-                model.addAttribute("order", order);
                 model.addAttribute("isEdit", false);
+                model.addAttribute("managerService", managerService);
                 return "manager/order-form";
             }
 
-            if (order.getStatusId() == null) {
-                model.addAttribute("error", "Статус заказа обязателен для заполнения");
-                List<OrderStatus> statuses = managerService.getAllStatuses();
-                List<Client> clients = managerService.getAllClients();
-                model.addAttribute("statuses", statuses);
-                model.addAttribute("clients", clients);
-                model.addAttribute("order", order);
-                model.addAttribute("isEdit", false);
-                return "manager/order-form";
+            order.setStatusId(statusId);
+
+            // Устанавливаем текущего менеджера, если не указан
+            if (order.getUserId() == null) {
+                order.setUserId(managerService.getCurrentUserId());
             }
 
             managerService.saveOrder(order);
             redirectAttributes.addFlashAttribute("success", "Заказ успешно создан");
-            return "redirect:/manager/orders";
         } catch (Exception e) {
-            model.addAttribute("error", "Ошибка при создании заказа: " + e.getMessage());
-            List<OrderStatus> statuses = managerService.getAllStatuses();
-            List<Client> clients = managerService.getAllClients();
-            model.addAttribute("statuses", statuses);
-            model.addAttribute("clients", clients);
-            model.addAttribute("order", order);
-            model.addAttribute("isEdit", false);
-            return "manager/order-form";
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/manager/orders";
     }
 
     // Форма редактирования заказа
     @GetMapping("/orders/edit/{id}")
-    public String editOrderForm(@PathVariable Long id, Model model) {
+    public String editOrderForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
             Optional<Order> orderOpt = managerService.getOrderById(id);
             if (orderOpt.isPresent()) {
                 List<OrderStatus> statuses = managerService.getAllStatuses();
                 List<Client> clients = managerService.getAllClients();
+                List<OrderItem> orderItems = managerService.getOrderItems(id);
 
                 model.addAttribute("order", orderOpt.get());
                 model.addAttribute("statuses", statuses);
                 model.addAttribute("clients", clients);
+                model.addAttribute("orderItems", orderItems);
                 model.addAttribute("isEdit", true);
+                model.addAttribute("managerService", managerService);
 
                 return "manager/order-form";
             }
-            return "redirect:/manager/orders?error=not_found";
+            redirectAttributes.addFlashAttribute("error", "Заказ не найден");
+            return "redirect:/manager/orders";
         } catch (Exception e) {
-            model.addAttribute("error", "Ошибка загрузки формы: " + e.getMessage());
-            return "error";
+            redirectAttributes.addFlashAttribute("error", "Ошибка загрузки формы: " + e.getMessage());
+            return "redirect:/manager/orders";
         }
     }
 
     // Обновление заказа
     @PostMapping("/orders/update/{id}")
-    public String updateOrder(@PathVariable Long id, @ModelAttribute Order order, RedirectAttributes redirectAttributes, Model model) {
+    public String updateOrder(@PathVariable Long id,
+                              @Valid @ModelAttribute Order order,
+                              BindingResult bindingResult,
+                              @RequestParam("statusId") Long statusId,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
         try {
-            // Валидация обязательных полей
-            if (order.getClientId() == null) {
-                model.addAttribute("error", "Клиент обязателен для заполнения");
+            if (bindingResult.hasErrors()) {
                 List<OrderStatus> statuses = managerService.getAllStatuses();
                 List<Client> clients = managerService.getAllClients();
-                model.addAttribute("statuses", statuses);
-                model.addAttribute("clients", clients);
-                model.addAttribute("order", order);
-                model.addAttribute("isEdit", true);
-                return "manager/order-form";
-            }
+                List<OrderItem> orderItems = managerService.getOrderItems(id);
 
-            if (order.getTotalAmount() == null || order.getTotalAmount() <= 0) {
-                model.addAttribute("error", "Сумма заказа должна быть положительным числом");
-                List<OrderStatus> statuses = managerService.getAllStatuses();
-                List<Client> clients = managerService.getAllClients();
                 model.addAttribute("statuses", statuses);
                 model.addAttribute("clients", clients);
-                model.addAttribute("order", order);
+                model.addAttribute("orderItems", orderItems);
                 model.addAttribute("isEdit", true);
-                return "manager/order-form";
-            }
+                model.addAttribute("managerService", managerService);
 
-            if (order.getStatusId() == null) {
-                model.addAttribute("error", "Статус заказа обязателен для заполнения");
-                List<OrderStatus> statuses = managerService.getAllStatuses();
-                List<Client> clients = managerService.getAllClients();
-                model.addAttribute("statuses", statuses);
-                model.addAttribute("clients", clients);
-                model.addAttribute("order", order);
-                model.addAttribute("isEdit", true);
                 return "manager/order-form";
             }
 
             order.setId(id);
-            managerService.saveOrder(order);
+
+            // Получаем старый заказ для проверки изменения статуса
+            Optional<Order> oldOrderOpt = managerService.getOrderById(id);
+
+            order.setStatusId(statusId);
+            Order updatedOrder = managerService.saveOrder(order);
+
+            // Если статус изменился - отправляем email
+            if (oldOrderOpt.isPresent() && !oldOrderOpt.get().getStatusId().equals(statusId)) {
+                managerService.updateOrderStatus(id, statusId);
+            }
+
             redirectAttributes.addFlashAttribute("success", "Заказ успешно обновлен");
-            return "redirect:/manager/orders";
         } catch (Exception e) {
-            model.addAttribute("error", "Ошибка при обновлении заказа: " + e.getMessage());
-            List<OrderStatus> statuses = managerService.getAllStatuses();
-            List<Client> clients = managerService.getAllClients();
-            model.addAttribute("statuses", statuses);
-            model.addAttribute("clients", clients);
-            model.addAttribute("order", order);
-            model.addAttribute("isEdit", true);
-            return "manager/order-form";
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/manager/orders";
     }
 
     // Удаление заказа
@@ -342,81 +392,71 @@ public class ManagerController {
         try {
             managerService.deleteOrder(id);
             redirectAttributes.addFlashAttribute("success", "Заказ успешно удален");
-            return "redirect:/manager/orders";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении заказа: " + e.getMessage());
-            return "redirect:/manager/orders";
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/manager/orders";
     }
 
     // Просмотр деталей заказа
     @GetMapping("/orders/view/{id}")
-    public String viewOrder(@PathVariable Long id, Model model) {
+    public String viewOrder(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
             Optional<Order> orderOpt = managerService.getOrderById(id);
             if (orderOpt.isPresent()) {
                 Order order = orderOpt.get();
                 Optional<Client> clientOpt = managerService.getClientById(order.getClientId());
                 Optional<OrderStatus> statusOpt = managerService.getStatusById(order.getStatusId());
+                List<OrderItem> orderItems = managerService.getOrderItems(id);
 
                 model.addAttribute("order", order);
                 model.addAttribute("client", clientOpt.orElse(null));
                 model.addAttribute("status", statusOpt.orElse(null));
+                model.addAttribute("orderItems", orderItems);
+                model.addAttribute("managerService", managerService);
 
-                return "manager/order-details";
+                return "manager/order-view";
             }
-            return "redirect:/manager/orders?error=not_found";
+            redirectAttributes.addFlashAttribute("error", "Заказ не найден");
+            return "redirect:/manager/orders";
         } catch (Exception e) {
-            model.addAttribute("error", "Ошибка загрузки деталей заказа: " + e.getMessage());
-            return "error";
+            redirectAttributes.addFlashAttribute("error", "Ошибка загрузки деталей заказа: " + e.getMessage());
+            return "redirect:/manager/orders";
         }
     }
 
-    // === СООБЩЕНИЯ ОТ КЛИЕНТОВ ===
-    @GetMapping("/messages")
-    public String messagesPage(Model model) {
+    /**
+     * Быстрое обновление статуса заказа
+     */
+    @PostMapping("/orders/update-status/{id}")
+    public String updateOrderStatus(@PathVariable Long id,
+                                    @RequestParam("statusId") Long statusId,
+                                    RedirectAttributes redirectAttributes) {
         try {
-            List<CustomerMessage> messages = managerService.getAllMessages();
-            long unreadCount = managerService.getUnreadMessagesCount();
-
-            model.addAttribute("messages", messages);
-            model.addAttribute("unreadCount", unreadCount);
-            model.addAttribute("totalMessages", messages.size());
-
-            return "manager/messages";
+            managerService.updateOrderStatus(id, statusId);
+            redirectAttributes.addFlashAttribute("success", "Статус заказа успешно обновлен");
         } catch (Exception e) {
-            model.addAttribute("error", "Ошибка загрузки сообщений: " + e.getMessage());
-            return "error";
+            redirectAttributes.addFlashAttribute("error", "Ошибка обновления статуса: " + e.getMessage());
         }
+        return "redirect:/manager/orders";
     }
 
-    // Пометка сообщения как прочитанного
-    @PostMapping("/messages/mark-read/{id}")
-    public String markMessageAsRead(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            managerService.markMessageAsRead(id);
-            redirectAttributes.addFlashAttribute("success", "Сообщение помечено как прочитанное");
-            return "redirect:/manager/messages";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Ошибка при обновлении сообщения: " + e.getMessage());
-            return "redirect:/manager/messages";
-        }
+    // API для autocomplete поиска
+    @GetMapping("/api/items/search")
+    @ResponseBody
+    public List<Item> searchItemsApi(@RequestParam String q) {
+        return managerService.searchItemsStartsWith(q);
     }
 
-    // Пометка всех сообщений как прочитанных
-    @PostMapping("/messages/mark-all-read")
-    public String markAllMessagesAsRead(RedirectAttributes redirectAttributes) {
-        try {
-            List<CustomerMessage> unreadMessages = managerService.getUnreadMessages();
-            for (CustomerMessage message : unreadMessages) {
-                message.setIsRead(true);
-                managerService.saveMessage(message);
-            }
-            redirectAttributes.addFlashAttribute("success", "Все сообщения помечены как прочитанные");
-            return "redirect:/manager/messages";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Ошибка при обновлении сообщений: " + e.getMessage());
-            return "redirect:/manager/messages";
-        }
+    @GetMapping("/api/clients/search")
+    @ResponseBody
+    public List<Client> searchClientsApi(@RequestParam String q) {
+        return managerService.searchClientsStartsWith(q);
+    }
+
+    @GetMapping("/api/orders/search")
+    @ResponseBody
+    public List<Order> searchOrdersApi(@RequestParam String q) {
+        return managerService.searchOrders(q);
     }
 }

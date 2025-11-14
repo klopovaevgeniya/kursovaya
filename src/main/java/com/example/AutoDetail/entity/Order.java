@@ -1,6 +1,7 @@
 package com.example.AutoDetail.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
@@ -10,16 +11,20 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Клиент обязателен")
     @Column(name = "ID_client")
     private Long clientId;
 
     @Column(name = "ID_user")
     private Long userId;
 
+    @NotNull(message = "Сумма заказа обязательна")
+    @jakarta.validation.constraints.DecimalMin(value = "0.0", inclusive = false, message = "Сумма заказа должна быть больше 0")
     private Double totalAmount;
 
     private LocalDateTime createdAt;
 
+    @NotNull(message = "Статус заказа обязателен")
     @Column(name = "ID_status")
     private Long statusId;
 

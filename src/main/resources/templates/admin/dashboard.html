@@ -4,140 +4,456 @@
     <meta charset="UTF-8">
     <title>Панель администратора</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .admin-dashboard {
+            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .admin-header {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-left: 6px solid #7c3aed;
+        }
+
+        .admin-title {
+            background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-subtitle {
+            color: #64748b;
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s ease;
+            border-left: 5px solid;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .stat-card.primary { border-left-color: #7c3aed; }
+        .stat-card.success { border-left-color: #10b981; }
+        .stat-card.warning { border-left-color: #f59e0b; }
+        .stat-card.info { border-left-color: #06b6d4; }
+
+        .stat-icon {
+            font-size: 3rem;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+        }
+
+        .stat-card.primary .stat-icon {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            color: white;
+        }
+        .stat-card.success .stat-icon {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+        .stat-card.warning .stat-icon {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: white;
+        }
+        .stat-card.info .stat-icon {
+            background: linear-gradient(135deg, #06b6d4, #22d3ee);
+            color: white;
+        }
+
+        .stat-content h3 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin: 0;
+            color: #1f2937;
+        }
+
+        .stat-content p {
+            color: #6b7280;
+            font-weight: 600;
+            margin: 0.25rem 0 0 0;
+            font-size: 1.1rem;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .action-header {
+            padding: 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .action-header.primary { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+        .action-header.success { background: linear-gradient(135deg, #10b981, #34d399); }
+        .action-header.warning { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+
+        .action-icon {
+            font-size: 2.5rem;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .action-header h5 {
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin: 0;
+            flex: 1;
+        }
+
+        .action-body {
+            padding: 2rem;
+        }
+
+        .action-body p {
+            color: #6b7280;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid #7c3aed;
+            color: #7c3aed;
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            color: white;
+        }
+
+        .btn-outline-success {
+            border: 2px solid #10b981;
+            color: #10b981;
+            background: transparent;
+        }
+
+        .btn-outline-success:hover {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+
+        .btn-outline-warning {
+            border: 2px solid #f59e0b;
+            color: #f59e0b;
+            background: transparent;
+        }
+
+        .btn-outline-warning:hover {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: white;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .feature-header {
+            padding: 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .feature-header.info { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+        .feature-header.secondary { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .feature-header h5 {
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin: 0;
+            flex: 1;
+        }
+
+        .feature-body {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .feature-body p {
+            color: #6b7280;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .feature-body .btn {
+            min-width: 200px;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #06b6d4, #22d3ee);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280, #9ca3af);
+            color: white;
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark admin-navbar">
     <div class="container">
         <a class="navbar-brand" th:href="@{/admin/dashboard}">🛠️ AutoDetail - Админ</a>
         <div class="navbar-nav">
-            <a class="nav-link active" th:href="@{/admin/dashboard}">Главная</a>
-            <a class="nav-link" th:href="@{/admin/items}">Товары</a>
-            <a class="nav-link" th:href="@{/admin/suppliers}">Поставщики</a>
-            <a class="nav-link" th:href="@{/admin/managers}">Менеджеры</a>
-            <a class="nav-link" th:href="@{/admin/statistics}">Статистика</a>
-            <a class="nav-link" th:href="@{/admin/reports}">Отчеты</a>
+            <a class="nav-link active" th:href="@{/admin/dashboard}">📊 Главная</a>
+            <a class="nav-link" th:href="@{/admin/items}">📦 Товары</a>
+            <a class="nav-link" th:href="@{/admin/categories}">📁 Категории</a>
+            <a class="nav-link" th:href="@{/admin/suppliers}">🏢 Поставщики</a>
+            <a class="nav-link" th:href="@{/admin/managers}">👨‍💼 Менеджеры</a>
+            <a class="nav-link" th:href="@{/admin/statistics}">📈 Статистика</a>
+            <a class="nav-link" th:href="@{/admin/reports}">📄 Отчеты</a>
         </div>
         <div class="navbar-nav ms-auto">
-                <span class="navbar-text text-light me-3">
-                    Вы вошли как: <strong>Администратор</strong>
-                </span>
+            <span class="navbar-text admin-user-info me-3">
+                Вы вошли как: <strong>Администратор</strong>
+            </span>
             <form th:action="@{/auth/logout}" method="post" class="d-inline">
-                <button type="submit" class="btn btn-outline-light btn-sm">🚪 Выйти</button>
+                <button type="submit" class="btn btn-outline-light btn-sm admin-logout-btn">🚪 Выйти</button>
             </form>
         </div>
     </div>
 </nav>
 
-<div class="container mt-4">
-    <h1>👑 Панель администратора</h1>
-    <p class="lead">Управление всем магазином автозапчастей</p>
+<div class="admin-dashboard">
+    <div class="container py-5">
+        <!-- Заголовок -->
+        <div class="admin-header">
+            <h1 class="admin-title">👑 Панель администратора</h1>
+            <p class="admin-subtitle">Управление всем магазином автозапчастей</p>
+        </div>
 
-    <!-- Статистика -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body text-center">
-                    <h2 th:text="${totalItems}">0</h2>
-                    <p class="mb-0">Товаров</p>
+        <!-- Статистика в карточках -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-icon">📦</div>
+                <div class="stat-content">
+                    <h3 th:text="${totalItems ?: 0}">0</h3>
+                    <p>Товаров</p>
+                </div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">🏢</div>
+                <div class="stat-content">
+                    <h3 th:text="${totalSuppliers ?: 0}">0</h3>
+                    <p>Поставщиков</p>
+                </div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon">👨‍💼</div>
+                <div class="stat-content">
+                    <h3 th:text="${totalManagers ?: 0}">0</h3>
+                    <p>Менеджеров</p>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <h3 th:text="${totalClients ?: 0}">0</h3>
+                    <p>Клиентов</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body text-center">
-                    <h2 th:text="${totalSuppliers}">0</h2>
-                    <p class="mb-0">Поставщиков</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body text-center">
-                    <h2 th:text="${totalManagers}">0</h2>
-                    <p class="mb-0">Менеджеров</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body text-center">
-                    <h2 th:text="${totalClients}">0</h2>
-                    <p class="mb-0">Клиентов</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Быстрые действия -->
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">📦 Управление товарами</h5>
+        <!-- Быстрые действия -->
+        <h3 class="section-title">🚀 Быстрые действия</h3>
+        <div class="actions-grid">
+            <div class="action-card">
+                <div class="action-header primary">
+                    <div class="action-icon">📦</div>
+                    <h5>Управление товарами</h5>
                 </div>
-                <div class="card-body">
+                <div class="action-body">
                     <p>Полный контроль над товарами: добавление, редактирование, удаление</p>
-                    <div class="d-grid gap-2">
-                        <a th:href="@{/admin/items}" class="btn btn-outline-primary">Перейти к товарам</a>
-                        <a th:href="@{/admin/items/create}" class="btn btn-primary">➕ Добавить товар</a>
+                    <div class="action-buttons">
+                        <a th:href="@{/admin/items}" class="btn btn-outline-primary">Обзор товаров</a>
+                        <a th:href="@{/admin/items/create}" class="btn btn-primary">➕ Добавить</a>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">🏢 Управление поставщиками</h5>
+            <div class="action-card">
+                <div class="action-header success">
+                    <div class="action-icon">🏢</div>
+                    <h5>Управление поставщиками</h5>
                 </div>
-                <div class="card-body">
+                <div class="action-body">
                     <p>Управление поставщиками и их контактной информацией</p>
-                    <div class="d-grid gap-2">
-                        <a th:href="@{/admin/suppliers}" class="btn btn-outline-success">Перейти к поставщикам</a>
-                        <a th:href="@{/admin/suppliers/create}" class="btn btn-success">➕ Добавить поставщика</a>
+                    <div class="action-buttons">
+                        <a th:href="@{/admin/suppliers}" class="btn btn-outline-success">Обзор поставщиков</a>
+                        <a th:href="@{/admin/suppliers/create}" class="btn btn-success">➕ Добавить</a>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-warning text-white">
-                    <h5 class="card-title mb-0">👨‍💼 Управление менеджерами</h5>
+            <div class="action-card">
+                <div class="action-header warning">
+                    <div class="action-icon">👨‍💼</div>
+                    <h5>Управление менеджерами</h5>
                 </div>
-                <div class="card-body">
+                <div class="action-body">
                     <p>Создание и управление учетными записями менеджеров</p>
-                    <div class="d-grid gap-2">
-                        <a th:href="@{/admin/managers}" class="btn btn-outline-warning">Перейти к менеджерам</a>
-                        <a th:href="@{/admin/managers/create}" class="btn btn-warning">➕ Добавить менеджера</a>
+                    <div class="action-buttons">
+                        <a th:href="@{/admin/managers}" class="btn btn-outline-warning">Обзор менеджеров</a>
+                        <a th:href="@{/admin/managers/create}" class="btn btn-warning">➕ Добавить</a>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Дополнительные разделы -->
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0">📊 Статистика</h5>
+        <!-- Дополнительные разделы -->
+        <h3 class="section-title">📋 Дополнительные разделы</h3>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-header info">
+                    <div class="feature-icon">📊</div>
+                    <h5>Статистика и аналитика</h5>
                 </div>
-                <div class="card-body">
-                    <p>Просмотр аналитики и статистики магазина</p>
+                <div class="feature-body">
+                    <p>Просмотр аналитики и статистики магазина в реальном времени</p>
                     <a th:href="@{/admin/statistics}" class="btn btn-info">Перейти к статистике</a>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="card-title mb-0">📄 Отчеты</h5>
+            <div class="feature-card">
+                <div class="feature-header secondary">
+                    <div class="feature-icon">📄</div>
+                    <h5>Отчеты и документы</h5>
                 </div>
-                <div class="card-body">
+                <div class="feature-body">
                     <p>Генерация и просмотр отчетов по деятельности магазина</p>
                     <a th:href="@{/admin/reports}" class="btn btn-secondary">Перейти к отчетам</a>
                 </div>
@@ -145,6 +461,8 @@
         </div>
     </div>
 </div>
+
+<div th:insert="~{fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

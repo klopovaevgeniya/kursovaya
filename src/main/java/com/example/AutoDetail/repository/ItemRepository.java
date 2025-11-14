@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
+    // === БАЗОВЫЕ МЕТОДЫ ПОИСКА ===
+
     // Поиск по названию
     List<Item> findByNameContainingIgnoreCase(String name);
 
@@ -27,4 +29,38 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     // Поиск по поставщику
     List<Item> findBySupplierId(Long supplierId);
+
+    // Поиск по категории
+    List<Item> findByCategoryId(Long categoryId);
+    List<Item> findByCategoryName(String categoryName);
+
+    // === УЛУЧШЕННЫЙ ПОИСК ДЛЯ АДМИН-ПАНЕЛИ ===
+
+    // Полнотекстовый поиск по всем полям
+    @Query("SELECT i FROM Item i WHERE " +
+            "LOWER(i.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(i.arctical) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(CAST(i.price AS string)) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    List<Item> searchItems(@Param("searchTerm") String searchTerm);
+
+    // Быстрый поиск по началу строки (для autocomplete)
+    @Query("SELECT i FROM Item i WHERE " +
+            "LOWER(i.name) LIKE LOWER(CONCAT(:searchTerm, '%')) OR " +
+            "LOWER(i.arctical) LIKE LOWER(CONCAT(:searchTerm, '%'))")
+    List<Item> searchItemsStartsWith(@Param("searchTerm") String searchTerm);
+
+    // Поиск по названию и артикулу с сортировкой
+    @Query("SELECT i FROM Item i WHERE " +
+            "LOWER(i.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(i.arctical) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+            "ORDER BY i.name ASC")
+    List<Item> searchItemsOrderByName(@Param("searchTerm") String searchTerm);
+
+    // Поиск товаров с информацией о поставщике и категории
+    @Query("SELECT i FROM Item i LEFT JOIN FETCH i.supplier LEFT JOIN FETCH i.category WHERE " +
+            "LOWER(i.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(i.arctical) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(i.supplier.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(i.category.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    List<Item> searchItemsWithDetails(@Param("searchTerm") String searchTerm);
 }

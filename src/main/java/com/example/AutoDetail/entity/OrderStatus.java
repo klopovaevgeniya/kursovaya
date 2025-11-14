@@ -1,6 +1,7 @@
 package com.example.AutoDetail.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "order_status")
@@ -9,7 +10,9 @@ public class OrderStatus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Статус обязателен")
     private String status;
+
     private String comment;
 
     // Геттеры и сеттеры
