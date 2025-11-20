@@ -42,14 +42,9 @@ public class Item {
     @Column(name = "is_articul_generated")
     private Boolean isArticulGenerated = false;
 
-    // ДОБАВЛЕНО ПОЛЕ ДОСТУПНОСТИ
-    @Column(name = "is_available", nullable = false)
-    private Boolean isAvailable = true;
-
     // Конструкторы
     public Item() {
         this.isArticulGenerated = false;
-        this.isAvailable = true;
     }
 
     public Item(String arctical, String name, Double price, Integer quantity, String image, Supplier supplier, Category category) {
@@ -61,7 +56,6 @@ public class Item {
         this.supplier = supplier;
         this.category = category;
         this.isArticulGenerated = false;
-        this.isAvailable = true;
     }
 
     // Геттеры и сеттеры
@@ -100,19 +94,5 @@ public class Item {
 
     public void setIsArticulGenerated(Boolean isArticulGenerated) {
         this.isArticulGenerated = isArticulGenerated != null ? isArticulGenerated : false;
-    }
-
-    // ДОБАВЛЕНЫ ГЕТТЕРЫ И СЕТТЕРЫ ДЛЯ isAvailable
-    public Boolean getIsAvailable() {
-        return isAvailable != null ? isAvailable : true;
-    }
-
-    public void setIsAvailable(Boolean isAvailable) {
-        this.isAvailable = isAvailable != null ? isAvailable : true;
-    }
-
-    // Альтернативный геттер для совместимости
-    public Boolean isAvailable() {
-        return getIsAvailable();
     }
 }

@@ -101,8 +101,6 @@ public class CartService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Товар не найден"));
 
-        // Проверяем доступность товара
-        validateItemAvailability(item, quantity);
 
         Optional<Cart> existingCartItem = cartRepository.findByClientIdAndItemId(clientId, itemId);
 
@@ -110,9 +108,6 @@ public class CartService {
             // Обновляем существующий товар в корзине
             Cart cart = existingCartItem.get();
             int newQuantity = cart.getQuantity() + quantity;
-
-            // Проверяем общее количество после добавления
-            validateItemAvailability(item, newQuantity);
 
             // Проверяем максимальное количество на товар
             validateMaxQuantityPerItem(newQuantity);
@@ -157,9 +152,6 @@ public class CartService {
                 .orElseThrow(() -> new RuntimeException("Товар не найден в корзине"));
 
         Item item = cartItem.getItem();
-
-        // Проверяем доступность товара
-        validateItemAvailability(item, quantity);
 
         // Проверяем максимальное количество на товар
         validateMaxQuantityPerItem(quantity);
@@ -343,20 +335,6 @@ public class CartService {
     }
 
     /**
-     * Валидация доступности товара
-     */
-    private void validateItemAvailability(Item item, int quantity) {
-        if (item.getQuantity() < quantity) {
-            throw new RuntimeException("Недостаточно товара '" + item.getName() + "' на складе. Доступно: " + item.getQuantity());
-        }
-
-        // ИСПРАВЛЕННЫЙ ВЫЗОВ МЕТОДА
-        if (!item.getIsAvailable()) {
-            throw new RuntimeException("Товар '" + item.getName() + "' временно недоступен");
-        }
-    }
-
-    /**
      * Валидация максимального количества на один товар
      */
     private void validateMaxQuantityPerItem(int quantity) {
@@ -392,11 +370,6 @@ public class CartService {
             }
 
             Item item = itemOpt.get();
-
-            // ИСПРАВЛЕННЫЙ ВЫЗОВ МЕТОДА
-            if (!item.getIsAvailable() || item.getQuantity() < quantity) {
-                return false;
-            }
 
             // Проверяем общее количество после добавления
             Optional<Cart> existingCartItem = cartRepository.findByClientIdAndItemId(clientId, itemId);
@@ -446,16 +419,6 @@ public class CartService {
             Item item = itemOpt.get();
             info.setItemName(item.getName());
             info.setAvailableQuantity(item.getQuantity());
-
-            // ИСПРАВЛЕННЫЙ ВЫЗОВ МЕТОДА
-            info.setItemAvailable(item.getIsAvailable());
-
-            // ИСПРАВЛЕННЫЙ ВЫЗОВ МЕТОДА
-            if (!item.getIsAvailable()) {
-                info.setValid(false);
-                info.setMessage("Товар временно недоступен");
-                return info;
-            }
 
             if (item.getQuantity() < quantity) {
                 info.setValid(false);

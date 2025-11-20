@@ -8,7 +8,10 @@ import com.example.AutoDetail.service.ItemService;
 import com.example.AutoDetail.service.OrderService;
 import com.example.AutoDetail.service.EmailService;
 import com.example.AutoDetail.service.UserService;
+import com.example.AutoDetail.service.SearchHistoryService;
 import com.example.AutoDetail.dto.ClientProfileDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -26,6 +29,8 @@ import java.util.Comparator;
 @RequestMapping("/client")
 public class ClientController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ClientController.class);
+
     private final ItemService itemService;
     private final CartService cartService;
     private final OrderService orderService;
@@ -35,12 +40,13 @@ public class ClientController {
     private final ClientProfileService clientProfileService;
     private final EmailService emailService;
     private final UserService userService;
+    private final SearchHistoryService searchHistoryService;
 
     public ClientController(ItemService itemService, CartService cartService,
                             OrderService orderService, CategoryRepository categoryRepository,
                             ClientRepository clientRepository, OrderStatusRepository orderStatusRepository,
                             ClientProfileService clientProfileService, EmailService emailService,
-                            UserService userService) {
+                            UserService userService, SearchHistoryService searchHistoryService) {
         this.itemService = itemService;
         this.cartService = cartService;
         this.orderService = orderService;
@@ -50,6 +56,7 @@ public class ClientController {
         this.clientProfileService = clientProfileService;
         this.emailService = emailService;
         this.userService = userService;
+        this.searchHistoryService = searchHistoryService;
     }
 
     // Получение ID текущего клиента из аутентификации
@@ -61,9 +68,11 @@ public class ClientController {
             if (client.isPresent()) {
                 return client.get().getId();
             } else {
+                logger.warn("Клиент не найден для пользователя: {}", username);
                 throw new RuntimeException("Клиент не найден для пользователя: " + username);
             }
         }
+        logger.warn("Попытка доступа неаутентифицированным пользователем");
         throw new RuntimeException("Пользователь не аутентифицирован");
     }
 
@@ -82,23 +91,35 @@ public class ClientController {
             if (client.isPresent()) {
                 return client.get();
             } else {
+                logger.warn("Клиент не найден для пользователя: {}", username);
                 throw new RuntimeException("Клиент не найден для пользователя: " + username);
             }
         }
+        logger.warn("Попытка доступа неаутентифицированным пользователем");
         throw new RuntimeException("Пользователь не аутентифицирован");
     }
 
-    // Каталог с поиском, фильтрацией и сортировкой
+    // Каталог с поиском, фильтрацией, сортировкой и историей поиска
     @GetMapping("/catalog")
     public String catalog(@RequestParam(required = false) String search,
                           @RequestParam(required = false) Long category,
                           @RequestParam(required = false) String sort,
                           Model model) {
 
+        logger.info("Запрос каталога: search={}, category={}, sort={}", search, category, sort);
         try {
             Long clientId = getCurrentClientId();
             Client currentClient = getCurrentClient();
             List<Item> items = itemService.getFilteredAndSortedItems(search, category, sort);
+
+            // Сохраняем поиск в историю, если есть поисковый запрос
+            if (search != null && !search.trim().isEmpty()) {
+                logger.debug("Сохранение поиска в историю: {}", search);
+                searchHistoryService.saveSearch(currentClient, search);
+            }
+
+            // Получаем историю поиска для выпадающего списка
+            List<String> searchHistory = searchHistoryService.getSearchHistory(clientId);
 
             model.addAttribute("items", items);
             model.addAttribute("categories", categoryRepository.findAll());
@@ -107,11 +128,30 @@ public class ClientController {
             model.addAttribute("selectedSort", sort);
             model.addAttribute("cartItemsCount", cartService.countItemsInCart(clientId));
             model.addAttribute("currentClientLogin", currentClient.getLogin());
+            model.addAttribute("searchHistory", searchHistory);
 
+            logger.info("Каталог успешно загружен: {} товаров, история поиска: {} записей",
+                    items.size(), searchHistory.size());
             return "client/catalog";
         } catch (RuntimeException e) {
-            // Если клиент не найден, перенаправляем на страницу логина
+            logger.warn("Ошибка доступа к каталогу, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
+        }
+    }
+
+    // AJAX метод для получения истории поиска
+    @GetMapping("/search-history")
+    @ResponseBody
+    public List<String> getSearchHistory() {
+        logger.debug("AJAX запрос истории поиска");
+        try {
+            Long clientId = getCurrentClientId();
+            List<String> history = searchHistoryService.getSearchHistory(clientId);
+            logger.debug("История поиска загружена: {} записей", history.size());
+            return history;
+        } catch (Exception e) {
+            logger.error("Ошибка получения истории поиска: {}", e.getMessage(), e);
+            return List.of();
         }
     }
 
@@ -120,6 +160,7 @@ public class ClientController {
     public String contactManagers(@RequestParam(required = false) String search,
                                   @RequestParam(required = false) String sort,
                                   Model model) {
+        logger.info("Запрос страницы менеджеров: search={}, sort={}", search, sort);
         try {
             Long clientId = getCurrentClientId();
             Client currentClient = getCurrentClient();
@@ -139,10 +180,12 @@ public class ClientController {
                                         (manager.getPhone() != null && manager.getPhone().contains(searchLower))
                         )
                         .collect(Collectors.toList());
+                logger.debug("Применен поиск менеджеров: '{}', найдено: {}", search, managers.size());
             }
 
             // Применяем сортировку
             if (sort != null && !sort.isEmpty()) {
+                logger.debug("Применена сортировка менеджеров: {}", sort);
                 switch (sort) {
                     case "nameAsc":
                         managers.sort(Comparator.comparing(User::getName,
@@ -169,8 +212,10 @@ public class ClientController {
             model.addAttribute("cartItemsCount", cartService.countItemsInCart(clientId));
             model.addAttribute("currentClientLogin", currentClient.getLogin());
 
+            logger.info("Страница менеджеров загружена: {} менеджеров", managers.size());
             return "client/contact-managers";
         } catch (RuntimeException e) {
+            logger.warn("Ошибка доступа к странице менеджеров, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
         }
     }
@@ -178,11 +223,13 @@ public class ClientController {
     // Детальная страница товара
     @GetMapping("/item/{id}")
     public String itemDetails(@PathVariable Long id, Model model) {
+        logger.info("Запрос детальной страницы товара ID={}", id);
         try {
             Long clientId = getCurrentClientId();
             Client currentClient = getCurrentClient();
             Item item = itemService.getItemById(id);
             if (item == null) {
+                logger.warn("Товар с ID={} не найден", id);
                 return "redirect:/client/catalog";
             }
 
@@ -193,8 +240,11 @@ public class ClientController {
             model.addAttribute("cartItemsCount", cartService.countItemsInCart(clientId));
             model.addAttribute("currentClientLogin", currentClient.getLogin());
 
+            logger.debug("Детальная страница товара '{}' загружена, связанных товаров: {}",
+                    item.getName(), relatedItems.size());
             return "client/item-details";
         } catch (RuntimeException e) {
+            logger.warn("Ошибка доступа к детальной странице товара, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
         }
     }
@@ -202,6 +252,7 @@ public class ClientController {
     // Просмотр корзины
     @GetMapping("/cart")
     public String viewCart(Model model) {
+        logger.info("Запрос страницы корзины");
         try {
             Long clientId = getCurrentClientId();
             Client currentClient = getCurrentClient();
@@ -213,8 +264,11 @@ public class ClientController {
             model.addAttribute("cartItemsCount", cartSummary.getCartItemsCount());
             model.addAttribute("currentClientLogin", currentClient.getLogin());
 
+            logger.info("Корзина загружена: {} товаров, общая сумма: {}",
+                    cartSummary.getTotalItems(), cartSummary.getTotalSum());
             return "client/cart";
         } catch (RuntimeException e) {
+            logger.warn("Ошибка доступа к корзине, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
         }
     }
@@ -222,12 +276,14 @@ public class ClientController {
     // Страница оформления заказа из корзины
     @GetMapping("/order/checkout")
     public String checkout(Model model) {
+        logger.info("Запрос страницы оформления заказа из корзины");
         try {
             Long clientId = getCurrentClientId();
             Client currentClient = getCurrentClient();
             ClientController.CartSummary cartSummary = cartService.getCartSummary(clientId);
 
             if (cartSummary.getCartItems().isEmpty()) {
+                logger.warn("Попытка оформления заказа с пустой корзиной");
                 return "redirect:/client/cart";
             }
 
@@ -236,8 +292,10 @@ public class ClientController {
             model.addAttribute("cartItemsCount", cartSummary.getCartItemsCount());
             model.addAttribute("currentClientLogin", currentClient.getLogin());
 
+            logger.debug("Страница оформления заказа загружена: {} товаров", cartSummary.getTotalItems());
             return "client/checkout";
         } catch (RuntimeException e) {
+            logger.warn("Ошибка доступа к странице оформления заказа, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
         }
     }
@@ -247,11 +305,13 @@ public class ClientController {
     public String checkoutDirect(@RequestParam Long itemId,
                                  @RequestParam int quantity,
                                  Model model) {
+        logger.info("Запрос прямого оформления заказа: itemId={}, quantity={}", itemId, quantity);
         try {
             Long clientId = getCurrentClientId();
             Client currentClient = getCurrentClient();
             Item item = itemService.getItemById(itemId);
             if (item == null) {
+                logger.warn("Товар с ID={} не найден при прямом оформлении", itemId);
                 return "redirect:/client/catalog";
             }
 
@@ -263,8 +323,10 @@ public class ClientController {
             model.addAttribute("cartItemsCount", cartService.countItemsInCart(clientId));
             model.addAttribute("currentClientLogin", currentClient.getLogin());
 
+            logger.debug("Страница прямого оформления заказа загружена для товара '{}'", item.getName());
             return "client/checkout-direct";
         } catch (RuntimeException e) {
+            logger.warn("Ошибка доступа к странице прямого оформления, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
         }
     }
@@ -272,6 +334,7 @@ public class ClientController {
     // Мои заказы
     @GetMapping("/orders")
     public String orders(Model model) {
+        logger.info("Запрос страницы заказов");
         try {
             Long clientId = getCurrentClientId();
             Client currentClient = getCurrentClient();
@@ -290,8 +353,10 @@ public class ClientController {
             model.addAttribute("cartItemsCount", cartService.countItemsInCart(clientId));
             model.addAttribute("currentClientLogin", currentClient.getLogin());
 
+            logger.info("Страница заказов загружена: {} заказов", orderDetails.size());
             return "client/orders";
         } catch (RuntimeException e) {
+            logger.warn("Ошибка доступа к странице заказов, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
         }
     }
@@ -299,6 +364,7 @@ public class ClientController {
     // Детали заказа
     @GetMapping("/order/{id}")
     public String orderDetails(@PathVariable Long id, Model model) {
+        logger.info("Запрос деталей заказа ID={}", id);
         try {
             Long clientId = getCurrentClientId();
             Client currentClient = getCurrentClient();
@@ -306,6 +372,7 @@ public class ClientController {
                     .orElse(null);
 
             if (order == null || !order.getClientId().equals(clientId)) {
+                logger.warn("Попытка доступа к несуществующему или чужому заказу ID={}", id);
                 return "redirect:/client/orders";
             }
 
@@ -319,8 +386,10 @@ public class ClientController {
             model.addAttribute("cartItemsCount", cartService.countItemsInCart(clientId));
             model.addAttribute("currentClientLogin", currentClient.getLogin());
 
+            logger.debug("Детали заказа ID={} загружены: {} позиций", id, orderItems.size());
             return "client/order-details";
         } catch (RuntimeException e) {
+            logger.warn("Ошибка доступа к деталям заказа, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
         }
     }
@@ -330,6 +399,7 @@ public class ClientController {
     // Страница профиля
     @GetMapping("/profile")
     public String profile(Model model) {
+        logger.info("Запрос страницы профиля");
         try {
             String clientLogin = getCurrentClientLogin();
             Client currentClient = getCurrentClient();
@@ -341,8 +411,10 @@ public class ClientController {
             model.addAttribute("cartItemsCount", cartService.countItemsInCart(clientId));
             model.addAttribute("currentClientLogin", currentClient.getLogin());
 
+            logger.debug("Страница профиля загружена для клиента: {}", clientLogin);
             return "client/profile";
         } catch (RuntimeException e) {
+            logger.warn("Ошибка доступа к профилю, перенаправление на логин: {}", e.getMessage());
             return "redirect:/auth/login";
         }
     }
@@ -351,6 +423,7 @@ public class ClientController {
     @PostMapping("/profile/update")
     @ResponseBody
     public Map<String, Object> updateProfile(@RequestBody ClientProfileDTO profileDTO) {
+        logger.info("AJAX запрос обновления профиля");
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
@@ -362,7 +435,10 @@ public class ClientController {
             response.put("message", "Профиль успешно обновлен");
             response.put("user", updatedClient);
             response.put("loginChanged", !oldLogin.equals(updatedClient.getLogin()));
+
+            logger.info("Профиль клиента ID={} успешно обновлен", clientId);
         } catch (Exception e) {
+            logger.error("Ошибка обновления профиля: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при обновлении профиля: " + e.getMessage());
         }
@@ -375,11 +451,13 @@ public class ClientController {
     public Map<String, Object> changePassword(@RequestParam String currentPassword,
                                               @RequestParam String newPassword,
                                               @RequestParam String confirmPassword) {
+        logger.info("AJAX запрос смены пароля");
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
 
             if (!newPassword.equals(confirmPassword)) {
+                logger.warn("Пароли не совпадают при смене пароля для клиента ID={}", clientId);
                 response.put("success", false);
                 response.put("message", "Новые пароли не совпадают");
                 return response;
@@ -388,13 +466,16 @@ public class ClientController {
             boolean passwordChanged = clientProfileService.updatePassword(clientId, currentPassword, newPassword);
 
             if (passwordChanged) {
+                logger.info("Пароль успешно изменен для клиента ID={}", clientId);
                 response.put("success", true);
                 response.put("message", "Пароль успешно изменен");
             } else {
+                logger.warn("Неверный текущий пароль для клиента ID={}", clientId);
                 response.put("success", false);
                 response.put("message", "Текущий пароль введен неверно");
             }
         } catch (Exception e) {
+            logger.error("Ошибка смены пароля: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при смене пароля: " + e.getMessage());
         }
@@ -405,6 +486,7 @@ public class ClientController {
     @PostMapping("/profile/car/update")
     @ResponseBody
     public Map<String, Object> updateCarInfo(@RequestBody ClientProfileDTO carDTO) {
+        logger.info("AJAX запрос обновления информации об автомобиле");
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
@@ -412,7 +494,10 @@ public class ClientController {
 
             response.put("success", true);
             response.put("message", "Информация об автомобиле успешно сохранена");
+
+            logger.debug("Информация об автомобиле обновлена для клиента ID={}", clientId);
         } catch (Exception e) {
+            logger.error("Ошибка обновления информации об автомобиле: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при сохранении информации об автомобиле: " + e.getMessage());
         }
@@ -423,6 +508,7 @@ public class ClientController {
     @GetMapping("/profile/data")
     @ResponseBody
     public Map<String, Object> getProfileData() {
+        logger.debug("AJAX запрос данных профиля");
         Map<String, Object> response = new HashMap<>();
         try {
             String clientLogin = getCurrentClientLogin();
@@ -432,7 +518,10 @@ public class ClientController {
             response.put("success", true);
             response.put("profile", clientProfile);
             response.put("cartItemsCount", cartService.countItemsInCart(clientId));
+
+            logger.debug("Данные профиля загружены для клиента: {}", clientLogin);
         } catch (Exception e) {
+            logger.error("Ошибка получения данных профиля: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при получении данных профиля");
         }
@@ -445,6 +534,7 @@ public class ClientController {
     @ResponseBody
     public Map<String, Object> addToCart(@RequestParam Long itemId,
                                          @RequestParam(defaultValue = "1") int quantity) {
+        logger.info("AJAX запрос добавления в корзину: itemId={}, quantity={}", itemId, quantity);
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
@@ -453,7 +543,10 @@ public class ClientController {
             response.put("success", true);
             response.put("message", "Товар успешно добавлен в корзину!");
             response.put("cartItemsCount", cartService.countItemsInCart(clientId));
+
+            logger.debug("Товар ID={} добавлен в корзину клиента ID={}", itemId, clientId);
         } catch (Exception e) {
+            logger.error("Ошибка добавления в корзину: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при добавлении товара в корзину: " + e.getMessage());
         }
@@ -464,6 +557,7 @@ public class ClientController {
     @ResponseBody
     public Map<String, Object> updateCart(@RequestParam Long itemId,
                                           @RequestParam int quantity) {
+        logger.info("AJAX запрос обновления корзины: itemId={}, quantity={}", itemId, quantity);
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
@@ -480,7 +574,11 @@ public class ClientController {
             response.put("itemTotal", itemTotal);
             response.put("cartTotal", cartSummary.getTotalSum());
             response.put("cartItemsCount", cartSummary.getCartItemsCount());
+
+            logger.debug("Корзина обновлена для клиента ID={}: товар ID={}, количество={}",
+                    clientId, itemId, quantity);
         } catch (Exception e) {
+            logger.error("Ошибка обновления корзины: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при обновлении корзины: " + e.getMessage());
         }
@@ -490,6 +588,7 @@ public class ClientController {
     @PostMapping("/cart/remove")
     @ResponseBody
     public Map<String, Object> removeFromCart(@RequestParam Long itemId) {
+        logger.info("AJAX запрос удаления из корзины: itemId={}", itemId);
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
@@ -501,7 +600,10 @@ public class ClientController {
             response.put("message", "Товар удален из корзины");
             response.put("cartTotal", cartSummary.getTotalSum());
             response.put("cartItemsCount", cartSummary.getCartItemsCount());
+
+            logger.debug("Товар ID={} удален из корзины клиента ID={}", itemId, clientId);
         } catch (Exception e) {
+            logger.error("Ошибка удаления из корзины: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при удалении товара: " + e.getMessage());
         }
@@ -511,6 +613,7 @@ public class ClientController {
     @PostMapping("/cart/clear")
     @ResponseBody
     public Map<String, Object> clearCart() {
+        logger.info("AJAX запрос очистки корзины");
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
@@ -520,7 +623,10 @@ public class ClientController {
             response.put("message", "Корзина очищена");
             response.put("cartItemsCount", 0);
             response.put("cartTotal", 0.0);
+
+            logger.info("Корзина очищена для клиента ID={}", clientId);
         } catch (Exception e) {
+            logger.error("Ошибка очистки корзины: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при очистке корзины: " + e.getMessage());
         }
@@ -531,6 +637,7 @@ public class ClientController {
     @ResponseBody
     public Map<String, Object> createOrder(@RequestParam String paymentMethod,
                                            @RequestParam(required = false) String cardDetails) {
+        logger.info("AJAX запрос создания заказа из корзины: paymentMethod={}", paymentMethod);
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
@@ -549,9 +656,10 @@ public class ClientController {
                             order.getId(),
                             order.getTotalAmount()
                     );
+                    logger.debug("Email уведомление отправлено для заказа ID={}", order.getId());
                 } catch (Exception emailException) {
-                    // Логируем ошибку отправки email, но не прерываем выполнение
-                    System.err.println("Ошибка отправки email: " + emailException.getMessage());
+                    logger.warn("Ошибка отправки email для заказа ID={}: {}",
+                            order.getId(), emailException.getMessage());
                 }
             }
 
@@ -559,7 +667,11 @@ public class ClientController {
             response.put("message", "Заказ успешно оформлен!");
             response.put("orderId", order.getId());
             response.put("redirectUrl", "/client/orders");
+
+            logger.info("Заказ успешно создан из корзины: ID={}, сумма={}",
+                    order.getId(), order.getTotalAmount());
         } catch (Exception e) {
+            logger.error("Ошибка создания заказа из корзины: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при оформлении заказа: " + e.getMessage());
         }
@@ -572,6 +684,8 @@ public class ClientController {
                                                  @RequestParam int quantity,
                                                  @RequestParam String paymentMethod,
                                                  @RequestParam(required = false) String cardDetails) {
+        logger.info("AJAX запрос прямого создания заказа: itemId={}, quantity={}, paymentMethod={}",
+                itemId, quantity, paymentMethod);
         Map<String, Object> response = new HashMap<>();
         try {
             Long clientId = getCurrentClientId();
@@ -590,9 +704,10 @@ public class ClientController {
                             order.getId(),
                             order.getTotalAmount()
                     );
+                    logger.debug("Email уведомление отправлено для прямого заказа ID={}", order.getId());
                 } catch (Exception emailException) {
-                    // Логируем ошибку отправки email, но не прерываем выполнение
-                    System.err.println("Ошибка отправки email: " + emailException.getMessage());
+                    logger.warn("Ошибка отправки email для прямого заказа ID={}: {}",
+                            order.getId(), emailException.getMessage());
                 }
             }
 
@@ -600,7 +715,11 @@ public class ClientController {
             response.put("message", "Заказ успешно оформлен!");
             response.put("orderId", order.getId());
             response.put("redirectUrl", "/client/orders");
+
+            logger.info("Прямой заказ успешно создан: ID={}, товар ID={}, количество={}",
+                    order.getId(), itemId, quantity);
         } catch (Exception e) {
+            logger.error("Ошибка создания прямого заказа: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "Ошибка при оформлении заказа: " + e.getMessage());
         }

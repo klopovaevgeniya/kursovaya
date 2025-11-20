@@ -4,24 +4,91 @@
   <meta charset="UTF-8">
   <title>Каталог автозапчастей</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link th:href="@{/css/style.css}" rel="stylesheet">
   <style>
-    .search-filter-form {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      padding: 1.5rem;
+    :root {
+      --bg-primary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-navbar: #212529;
+      --text-primary: #1f2937;
+      --text-secondary: #64748b;
+      --text-muted: #6b7280;
+      --border-color: rgba(0,0,0,0.08);
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #1a1a2e;
+      --bg-card: #2d3748;
+      --bg-navbar: #1a202c;
+      --text-primary: #f7fafc;
+      --text-secondary: #e2e8f0;
+      --text-muted: #cbd5e0;
+      --border-color: rgba(255,255,255,0.1);
+      --shadow: 0 10px 25px rgba(0,0,0,0.3);
+      --shadow-hover: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .client-catalog {
+      background: var(--bg-primary);
+      min-height: 100vh;
+      padding: 2rem 0;
+      transition: all 0.3s ease;
+    }
+
+    .catalog-header {
+      text-align: center;
       margin-bottom: 2rem;
     }
+
+    .catalog-title {
+      background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .catalog-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin: 0;
+      transition: all 0.3s ease;
+    }
+
+    .search-filter-form {
+      background: var(--bg-card);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+      border-left: 6px solid #7c3aed;
+    }
+
     .product-card {
       transition: all 0.4s ease;
       border: none;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow);
+      background: var(--bg-card);
+      border-radius: 16px;
+      overflow: hidden;
     }
+
     .product-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      box-shadow: var(--shadow-hover);
     }
+
     .image-placeholder {
       width: 100%;
       height: 200px;
@@ -33,49 +100,337 @@
       color: #7c3aed;
       border-radius: 12px 12px 0 0;
     }
+
+    [data-theme="dark"] .image-placeholder {
+      background: linear-gradient(135deg, #2d3748, #4a5568);
+    }
+
     .product-image {
       width: 100%;
       height: 200px;
       object-fit: cover;
       border-radius: 12px 12px 0 0;
     }
+
     .product-image-container {
       width: 100%;
       height: 200px;
       overflow: hidden;
       border-radius: 12px 12px 0 0;
     }
+
     .toast-container {
       position: fixed;
       top: 20px;
       right: 20px;
       z-index: 9999;
     }
+
     .custom-toast {
-      background: white;
-      border-radius: 8px;
-      padding: 12px 16px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
       margin-bottom: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: var(--shadow);
       border-left: 4px solid;
       min-width: 300px;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
     }
+
     .toast-success {
-      border-left-color: #28a745;
+      border-left-color: #10b981;
     }
+
     .toast-error {
-      border-left-color: #dc3545;
+      border-left-color: #ef4444;
     }
+
     .toast-info {
-      border-left-color: #17a2b8;
+      border-left-color: #06b6d4;
+    }
+
+    /* Стили для истории поиска */
+    .search-history-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 0 0 12px 12px;
+      border-top: none;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+
+    .search-history-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .search-history-item:hover {
+      background-color: var(--data-theme="dark" ? #4a5568 : #f8f9fa);
+    }
+
+    .search-history-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-history-icon {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .search-history-query {
+      flex: 1;
+      color: var(--text-primary);
+    }
+
+    .search-history-empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .search-container {
+      position: relative;
+    }
+
+    .search-input:focus {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .search-input:focus + .search-history-dropdown {
+      display: block;
+    }
+
+    .search-history-dropdown:hover {
+      display: block;
+    }
+
+    /* Theme Switch */
+    .theme-switch {
+      display: flex;
+      align-items: center;
+      margin-right: 1rem;
+    }
+
+    .theme-switch-label {
+      margin-right: 0.5rem;
+      color: #dee2e6;
+      font-weight: 500;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    /* Dark mode adjustments */
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-select {
+      background-color: #4a5568;
+      border-color: #718096;
+      color: #f7fafc;
+    }
+
+    [data-theme="dark"] .form-control:focus,
+    [data-theme="dark"] .form-select:focus {
+      background-color: #4a5568;
+      border-color: #7c3aed;
+      color: #f7fafc;
+    }
+
+    .form-control {
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .form-control:focus {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+      outline: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-outline-secondary {
+      border: 2px solid #6b7280;
+      color: #6b7280;
+      background: transparent;
+      border-radius: 10px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-secondary:hover {
+      background: #6b7280;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.7;
+      color: #7c3aed;
+    }
+
+    .empty-title {
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      font-weight: 600;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .empty-text {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+      transition: all 0.3s ease;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .card-title {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .card-text {
+      color: var(--text-muted);
+    }
+
+    .product-price {
+      color: #dc2626;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .badge {
+      font-weight: 500;
+    }
+
+    .text-muted {
+      color: var(--text-muted) !important;
+    }
+
+    .text-success {
+      color: #10b981 !important;
+    }
+
+    .text-warning {
+      color: #f59e0b !important;
+    }
+
+    @media (max-width: 768px) {
+      .catalog-title {
+        font-size: 2rem;
+      }
+
+      .search-filter-form {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
+<!-- Контейнер для кастомных уведомлений -->
+<div class="toast-container" id="toastContainer"></div>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark client-navbar">
   <div class="container">
     <a class="navbar-brand" th:href="@{/client/catalog}">🛠️ AutoDetail - Каталог</a>
     <div class="navbar-nav ms-auto">
+      <div class="theme-switch">
+        <span class="theme-switch-label">☀️</span>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="theme-switch-label">🌙</span>
+      </div>
       <a class="nav-link" th:href="@{/client/cart}">
         🛒 Корзина
         <span class="cart-counter badge bg-danger ms-1" th:if="${cartItemsCount > 0}" th:text="${cartItemsCount}"></span>
@@ -93,10 +448,7 @@
   </div>
 </nav>
 
-<!-- Контейнер для кастомных уведомлений -->
-<div class="toast-container" id="toastContainer"></div>
-
-<div class="main-content client-catalog">
+<div class="client-catalog">
   <div class="container mt-4">
     <!-- Заголовок -->
     <div class="catalog-header">
@@ -109,8 +461,30 @@
       <form th:action="@{/client/catalog}" method="get" class="row g-3 align-items-end">
         <div class="col-md-4">
           <label class="form-label fw-semibold">🔍 Поиск</label>
-          <input type="text" class="form-control" name="search" th:value="${search}"
-                 placeholder="Введите название или артикул...">
+          <div class="search-container">
+            <input type="text"
+                   class="form-control search-input"
+                   name="search"
+                   th:value="${search}"
+                   placeholder="Введите название или артикул..."
+                   id="searchInput"
+                   autocomplete="off">
+
+            <!-- Выпадающий список истории поиска -->
+            <div class="search-history-dropdown" id="searchHistoryDropdown">
+              <div th:if="${not #lists.isEmpty(searchHistory)}">
+                <div th:each="historyItem : ${searchHistory}"
+                     class="search-history-item"
+                     onclick="selectSearchHistory(this)">
+                  <span class="search-history-icon">🔍</span>
+                  <span class="search-history-query" th:text="${historyItem}"></span>
+                </div>
+              </div>
+              <div th:if="${#lists.isEmpty(searchHistory)}" class="search-history-empty">
+                История поиска пуста
+              </div>
+            </div>
+          </div>
         </div>
         <div class="col-md-3">
           <label class="form-label fw-semibold">📂 Категория</label>
@@ -148,7 +522,7 @@
       <div class="row">
         <div th:each="item : ${items}" class="col-xl-3 col-lg-4 col-md-6 mb-4">
           <div class="card product-card h-100">
-            <a th:href="@{'/client/item/' + ${item.id}}" class="text-decoration-none text-dark">
+            <a th:href="@{'/client/item/' + ${item.id}}" class="text-decoration-none">
               <div class="product-image-container">
                 <!-- ИСПРАВЛЕННАЯ ЧАСТЬ: используем прямое поле image из объекта item -->
                 <img th:if="${item.image != null && item.image != ''}"
@@ -161,7 +535,7 @@
             </a>
 
             <div class="card-body">
-              <a th:href="@{'/client/item/' + ${item.id}}" class="text-decoration-none text-dark">
+              <a th:href="@{'/client/item/' + ${item.id}}" class="text-decoration-none">
                 <h6 class="card-title" th:text="${item.name}"></h6>
               </a>
               <p class="card-text text-muted small mb-2" th:text="'Артикул: ' + ${item.arctical}"></p>
@@ -171,7 +545,7 @@
               </div>
 
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="product-price fw-bold text-danger" th:text="'₽' + ${#numbers.formatDecimal(item.price, 1, 2)}"></span>
+                <span class="product-price fw-bold" th:text="'₽' + ${#numbers.formatDecimal(item.price, 1, 2)}"></span>
                 <small th:class="${item.quantity > 0} ? 'text-success' : 'text-warning'"
                        th:text="${item.quantity > 0} ? '✓ В наличии' : '⏳ Под заказ'"
                        class="fw-medium"></small>
@@ -211,79 +585,137 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Функция для показа кастомных уведомлений
-  function showCustomToast(message, type = 'info') {
-      const toastContainer = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `custom-toast toast-${type}`;
-      toast.innerHTML = `
-          <div class="d-flex justify-content-between align-items-center">
-              <div class="toast-message fw-medium">${message}</div>
-              <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
-          </div>
-      `;
+  // Theme management
+  document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const currentTheme = localStorage.getItem('theme') || 'light';
 
-      toastContainer.appendChild(toast);
+      // Apply saved theme
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.checked = currentTheme === 'dark';
 
-      // Автоматическое удаление через 5 секунд
-      setTimeout(() => {
-          if (toast.parentElement) {
-              toast.remove();
-          }
-      }, 5000);
-  }
-
-  // Функция добавления в корзину
-  function addToCart(button) {
-      const itemId = button.getAttribute('data-item-id');
-
-      // Блокируем кнопку на время запроса
-      button.disabled = true;
-      const originalText = button.innerHTML;
-      button.innerHTML = '⏳ Добавляем...';
-
-      fetch('/client/cart/add', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `itemId=${itemId}&quantity=1`
-      })
-      .then(response => response.json())
-      .then(data => {
-          if (data.success) {
-              showCustomToast(data.message, 'success');
-              // Обновляем счетчик корзины
-              document.querySelectorAll('.cart-counter').forEach(counter => {
-                  counter.textContent = data.cartItemsCount;
-                  counter.style.display = 'inline';
-              });
-          } else {
-              showCustomToast(data.message, 'error');
-          }
-      })
-      .catch(error => {
-          console.error('Error:', error);
-          showCustomToast('Ошибка при добавлении в корзину', 'error');
-      })
-      .finally(() => {
-          // Восстанавливаем кнопку
-          button.disabled = false;
-          button.innerHTML = originalText;
+      // Toggle theme
+      themeToggle.addEventListener('change', function() {
+          const newTheme = this.checked ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
       });
-  }
 
-  // Автопоиск при вводе
-  let searchTimeout;
-  document.querySelector('input[name="search"]')?.addEventListener('input', function(e) {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-          this.form.submit();
-      }, 800);
+      // Инициализация остального функционала
+      initializeCatalogFunctionality();
   });
 
-  // Обработка ошибок загрузки изображений
-  document.addEventListener('DOMContentLoaded', function() {
+  function initializeCatalogFunctionality() {
+      // Функция для показа кастомных уведомлений
+      window.showCustomToast = function(message, type = 'info') {
+          const toastContainer = document.getElementById('toastContainer');
+          const toast = document.createElement('div');
+          toast.className = `custom-toast toast-${type}`;
+          toast.innerHTML = `
+              <div class="d-flex justify-content-between align-items-center">
+                  <div class="toast-message fw-medium">${message}</div>
+                  <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+              </div>
+          `;
+
+          toastContainer.appendChild(toast);
+
+          // Автоматическое удаление через 5 секунд
+          setTimeout(() => {
+              if (toast.parentElement) {
+                  toast.remove();
+              }
+          }, 5000);
+      }
+
+      // Функция добавления в корзину
+      window.addToCart = function(button) {
+          const itemId = button.getAttribute('data-item-id');
+
+          // Блокируем кнопку на время запроса
+          button.disabled = true;
+          const originalText = button.innerHTML;
+          button.innerHTML = '⏳ Добавляем...';
+
+          fetch('/client/cart/add', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `itemId=${itemId}&quantity=1`
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  showCustomToast(data.message, 'success');
+                  // Обновляем счетчик корзины
+                  document.querySelectorAll('.cart-counter').forEach(counter => {
+                      counter.textContent = data.cartItemsCount;
+                      counter.style.display = 'inline';
+                  });
+              } else {
+                  showCustomToast(data.message, 'error');
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              showCustomToast('Ошибка при добавлении в корзину', 'error');
+          })
+          .finally(() => {
+              // Восстанавливаем кнопку
+              button.disabled = false;
+              button.innerHTML = originalText;
+          });
+      }
+
+      // Функция выбора из истории поиска
+      window.selectSearchHistory = function(element) {
+          const searchQuery = element.querySelector('.search-history-query').textContent;
+          const searchInput = document.getElementById('searchInput');
+          searchInput.value = searchQuery;
+
+          // Скрываем выпадающий список
+          document.getElementById('searchHistoryDropdown').style.display = 'none';
+
+          // Автоматически отправляем форму
+          searchInput.closest('form').submit();
+      }
+
+      // Обработчики для выпадающего списка истории поиска
+      const searchInput = document.getElementById('searchInput');
+      const searchHistoryDropdown = document.getElementById('searchHistoryDropdown');
+
+      if (searchInput && searchHistoryDropdown) {
+          // Показываем историю при фокусе
+          searchInput.addEventListener('focus', function() {
+              searchHistoryDropdown.style.display = 'block';
+          });
+
+          // Скрываем историю при клике вне поля
+          document.addEventListener('click', function(e) {
+              if (!searchInput.contains(e.target) && !searchHistoryDropdown.contains(e.target)) {
+                  searchHistoryDropdown.style.display = 'none';
+              }
+          });
+
+          // Скрываем историю при нажатии Escape
+          searchInput.addEventListener('keydown', function(e) {
+              if (e.key === 'Escape') {
+                  searchHistoryDropdown.style.display = 'none';
+              }
+          });
+      }
+
+      // Автопоиск при вводе
+      let searchTimeout;
+      document.querySelector('input[name="search"]')?.addEventListener('input', function(e) {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+              this.form.submit();
+          }, 800);
+      });
+
+      // Обработка ошибок загрузки изображений
       document.querySelectorAll('.product-image').forEach(img => {
           img.onerror = function() {
               this.style.display = 'none';
@@ -294,7 +726,7 @@
               }
           };
       });
-  });
+  }
 </script>
 </body>
 </html>

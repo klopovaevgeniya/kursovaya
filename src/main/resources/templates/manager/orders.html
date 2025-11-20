@@ -6,32 +6,56 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        .status-badge {
-            font-size: 0.8em;
-            padding: 0.35em 0.65em;
+        :root {
+            --bg-primary: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+            --bg-card: white;
+            --bg-navbar: #212529;
+            --text-primary: #1f2937;
+            --text-secondary: #64748b;
+            --text-muted: #6b7280;
+            --border-color: rgba(0,0,0,0.08);
+            --shadow: 0 10px 25px rgba(0,0,0,0.08);
+            --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
         }
-        .action-buttons .btn {
-            margin: 0 2px;
+
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-card: #2d3748;
+            --bg-navbar: #1a202c;
+            --text-primary: #f7fafc;
+            --text-secondary: #e2e8f0;
+            --text-muted: #cbd5e0;
+            --border-color: rgba(255,255,255,0.1);
+            --shadow: 0 10px 25px rgba(0,0,0,0.3);
+            --shadow-hover: 0 15px 35px rgba(0,0,0,0.4);
         }
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.075);
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
+
         .admin-dashboard {
-            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+            background: var(--bg-primary);
             min-height: 100vh;
             padding: 2rem 0;
+            transition: all 0.3s ease;
         }
+
         .admin-page-header {
-            background: white;
+            background: var(--bg-card);
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
             padding: 2.5rem;
             margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-left: 6px solid #7c3aed;
+            transition: all 0.3s ease;
         }
+
         .page-title {
             background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
             -webkit-background-clip: text;
@@ -41,12 +65,15 @@
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
         }
+
         .page-subtitle {
-            color: #64748b;
+            color: var(--text-secondary);
             font-size: 1.2rem;
             font-weight: 500;
             margin: 0;
+            transition: all 0.3s ease;
         }
+
         .btn-success {
             background: linear-gradient(135deg, #10b981, #34d399);
             border: none;
@@ -55,60 +82,87 @@
             font-weight: 600;
             transition: all 0.3s ease;
         }
+
         .btn-success:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         }
+
         .alert {
             border-radius: 12px;
             border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
             border-left: 4px solid;
             padding: 1rem 1.5rem;
             margin-bottom: 2rem;
+            transition: all 0.3s ease;
         }
+
         .alert-success {
             background: #f0fdf4;
             color: #16a34a;
             border-left-color: #16a34a;
         }
+
         .alert-danger {
             background: #fef2f2;
             color: #dc2626;
             border-left-color: #dc2626;
         }
+
+        [data-theme="dark"] .alert-success {
+            background: #064e3b;
+            color: #34d399;
+            border-left-color: #10b981;
+        }
+
+        [data-theme="dark"] .alert-danger {
+            background: #7f1d1d;
+            color: #fca5a5;
+            border-left-color: #ef4444;
+        }
+
         .admin-filter-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            box-shadow: var(--shadow);
             overflow: hidden;
             margin-bottom: 2rem;
+            transition: all 0.3s ease;
         }
+
         .filter-header {
             background: linear-gradient(135deg, #7c3aed, #a78bfa);
             color: white;
             padding: 1.5rem 2rem;
         }
+
         .filter-title {
             font-weight: 700;
             font-size: 1.3rem;
             margin: 0;
         }
+
         .filter-body {
             padding: 2rem;
         }
+
         .form-control {
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             padding: 0.75rem 1rem;
             font-size: 1rem;
             transition: all 0.3s ease;
+            background: var(--bg-card);
+            color: var(--text-primary);
         }
+
         .form-control:focus {
             border-color: #7c3aed;
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
             outline: none;
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #7c3aed, #a78bfa);
             border: none;
@@ -117,10 +171,12 @@
             font-weight: 600;
             transition: all 0.3s ease;
         }
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
         }
+
         .btn-outline-secondary {
             border: 2px solid #6b7280;
             color: #6b7280;
@@ -130,17 +186,21 @@
             font-weight: 600;
             transition: all 0.3s ease;
         }
+
         .btn-outline-secondary:hover {
             background: #6b7280;
             color: white;
             transform: translateY(-2px);
         }
+
         .admin-table-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            box-shadow: var(--shadow);
             overflow: hidden;
+            transition: all 0.3s ease;
         }
+
         .table-header {
             background: linear-gradient(135deg, #7c3aed, #a78bfa);
             color: white;
@@ -149,11 +209,13 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .table-title {
             font-weight: 700;
             font-size: 1.3rem;
             margin: 0;
         }
+
         .table-badge {
             background: rgba(255,255,255,0.2);
             padding: 0.5rem 1rem;
@@ -161,13 +223,17 @@
             font-weight: 600;
             font-size: 0.9rem;
         }
+
         .table-body {
             padding: 0;
         }
+
         .admin-table {
             margin: 0;
             border: none;
+            width: 100%;
         }
+
         .admin-table thead th {
             background: #374151 !important;
             color: white;
@@ -178,46 +244,58 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         .admin-table tbody tr {
             transition: all 0.3s ease;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--border-color);
         }
+
         .admin-table tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: var(--data-theme="dark" ? #4a5568 : #f8fafc);
             transform: translateY(-1px);
         }
+
         .admin-table tbody td {
             padding: 1rem 1.5rem;
             vertical-align: middle;
             border: none;
+            color: var(--text-primary);
         }
+
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
         }
+
         .empty-icon {
             font-size: 4rem;
             margin-bottom: 1.5rem;
             opacity: 0.7;
             color: #7c3aed;
         }
+
         .empty-title {
-            color: #374151;
+            color: var(--text-primary);
             margin-bottom: 1rem;
             font-weight: 600;
             font-size: 1.5rem;
+            transition: all 0.3s ease;
         }
+
         .empty-text {
-            color: #6b7280;
+            color: var(--text-muted);
             font-size: 1.1rem;
             margin-bottom: 2rem;
             line-height: 1.6;
+            transition: all 0.3s ease;
         }
+
         .action-buttons {
             display: flex;
             gap: 0.5rem;
             justify-content: center;
         }
+
         .btn-action {
             border: none;
             border-radius: 8px;
@@ -231,34 +309,42 @@
             justify-content: center;
             text-decoration: none;
         }
+
         .btn-info {
             background: linear-gradient(135deg, #0ea5e9, #38bdf8);
         }
+
         .btn-info:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
             color: white;
         }
+
         .btn-warning {
             background: linear-gradient(135deg, #f59e0b, #fbbf24);
         }
+
         .btn-warning:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
             color: white;
         }
+
         .btn-danger {
             background: linear-gradient(135deg, #ef4444, #f87171);
         }
+
         .btn-danger:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
             color: white;
         }
+
         .btn-danger:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+
         .notification {
             position: fixed;
             top: 20px;
@@ -266,24 +352,131 @@
             z-index: 9999;
             min-width: 300px;
             border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: var(--shadow);
         }
+
+        .status-badge {
+            font-size: 0.8em;
+            padding: 0.35em 0.65em;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* Theme Switch */
+        .theme-switch {
+            display: flex;
+            align-items: center;
+            margin-right: 1rem;
+        }
+
+        .theme-switch-label {
+            margin-right: 0.5rem;
+            color: #dee2e6;
+            font-weight: 500;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Dark mode adjustments */
+        [data-theme="dark"] .form-control,
+        [data-theme="dark"] .form-select {
+            background-color: #4a5568;
+            border-color: #718096;
+            color: #f7fafc;
+        }
+
+        [data-theme="dark"] .form-control:focus,
+        [data-theme="dark"] .form-select:focus {
+            background-color: #4a5568;
+            border-color: #7c3aed;
+            color: #f7fafc;
+        }
+
+        [data-theme="dark"] .modal-content {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .modal-header,
+        [data-theme="dark"] .modal-footer {
+            border-color: var(--border-color);
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         @media (max-width: 768px) {
             .admin-page-header {
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
             }
+
             .table-responsive {
                 font-size: 0.9rem;
             }
+
             .action-buttons {
                 flex-direction: column;
             }
+
             .btn-action {
                 width: 2.2rem;
                 height: 2.2rem;
             }
+
             .notification {
                 left: 10px;
                 right: 10px;
@@ -293,6 +486,18 @@
     </style>
 </head>
 <body>
+<!-- Flash Messages -->
+<div class="alert-container">
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand" th:href="@{/manager/dashboard}">🛠️ AutoDetail - Менеджер</a>
@@ -302,6 +507,14 @@
             <a class="nav-link active" th:href="@{/manager/orders}">📋 Заказы</a>
         </div>
         <div class="navbar-nav ms-auto">
+            <div class="theme-switch">
+                <span class="theme-switch-label">☀️</span>
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="theme-switch-label">🌙</span>
+            </div>
             <span class="navbar-text me-3">
                 Вы вошли как: <strong>Менеджер</strong>
             </span>
@@ -524,8 +737,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Обработка удаления заказов
+    // Theme management
     document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+
+        // Apply saved theme
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        themeToggle.checked = currentTheme === 'dark';
+
+        // Toggle theme
+        themeToggle.addEventListener('change', function() {
+            const newTheme = this.checked ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Обработка удаления заказов
         const deleteOrderModal = new bootstrap.Modal(document.getElementById('deleteOrderModal'));
         const deleteOrderForm = document.getElementById('deleteOrderForm');
         let currentOrderId = null;

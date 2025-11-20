@@ -51,9 +51,6 @@ public class Client {
     private String password;
 
     // Дополнительные поля для улучшения функциональности
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
-
     @Column(name = "created_at", updatable = false)
     private java.time.LocalDateTime createdAt;
 
@@ -62,7 +59,6 @@ public class Client {
 
     // Конструкторы
     public Client() {
-        this.isActive = true;
         this.createdAt = java.time.LocalDateTime.now();
         this.updatedAt = java.time.LocalDateTime.now();
     }
@@ -162,14 +158,6 @@ public class Client {
         this.password = password;
     }
 
-    public Boolean getIsActive() {
-        return isActive != null ? isActive : true;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive != null ? isActive : true;
-    }
-
     public java.time.LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -233,16 +221,6 @@ public class Client {
 
     public boolean hasEmail() {
         return email != null && !email.trim().isEmpty();
-    }
-
-    public void deactivate() {
-        this.isActive = false;
-        this.updatedAt = java.time.LocalDateTime.now();
-    }
-
-    public void activate() {
-        this.isActive = true;
-        this.updatedAt = java.time.LocalDateTime.now();
     }
 
     // Валидационные методы
@@ -352,7 +330,6 @@ public class Client {
                 ", surname='" + surname + '\'' +
                 ", login='" + login + '\'' +
                 ", phone='" + phone + '\'' +
-                ", isActive=" + isActive +
                 '}';
     }
 
@@ -371,7 +348,6 @@ public class Client {
         private Car car;
         private String login;
         private String password;
-        private Boolean isActive;
         private java.time.LocalDateTime createdAt;
         private java.time.LocalDateTime updatedAt;
 
@@ -420,11 +396,6 @@ public class Client {
             return this;
         }
 
-        public ClientBuilder isActive(Boolean isActive) {
-            this.isActive = isActive;
-            return this;
-        }
-
         public ClientBuilder createdAt(java.time.LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -446,7 +417,6 @@ public class Client {
             client.setCar(this.car);
             client.setLogin(this.login);
             client.setPassword(this.password);
-            client.setIsActive(this.isActive);
             client.setCreatedAt(this.createdAt);
             client.setUpdatedAt(this.updatedAt);
             return client;

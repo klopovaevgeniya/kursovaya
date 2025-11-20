@@ -1,19 +1,242 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Статистика - Панель администратора</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статистика магазина</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link th:href="@{/css/style.css}" rel="stylesheet">
-  <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
-  <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+        --bg-primary: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+        --bg-card: white;
+        --bg-navbar: #212529;
+        --text-primary: #1f2937;
+        --text-secondary: #64748b;
+        --text-muted: #6b7280;
+        --border-color: rgba(0,0,0,0.08);
+        --shadow: 0 10px 25px rgba(0,0,0,0.08);
+        --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
+    }
+
+    [data-theme="dark"] {
+        --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        --bg-card: #2d3748;
+        --bg-navbar: #1a202c;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-muted: #cbd5e0;
+        --border-color: rgba(255,255,255,0.1);
+        --shadow: 0 10px 25px rgba(0,0,0,0.3);
+        --shadow-hover: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
+    body {
+        background: var(--bg-primary);
+        min-height: 100vh;
+        transition: all 0.3s ease;
+    }
+
+    .admin-dashboard {
+        padding: 2rem 0;
+    }
+
+    .admin-title {
+        background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        font-size: 2.8rem;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .admin-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin: 0 0 2rem 0;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        border: none;
+        border-radius: 20px;
+        color: white;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+        border-left: 6px solid;
+    }
+
+    .stat-card:nth-child(1) { border-left-color: #7c3aed; }
+    .stat-card:nth-child(2) { border-left-color: #10b981; }
+    .stat-card:nth-child(3) { border-left-color: #f59e0b; }
+    .stat-card:nth-child(4) { border-left-color: #06b6d4; }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .chart-container {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border-left: 6px solid #7c3aed;
+        transition: all 0.3s ease;
+    }
+
+    .chart-container:hover {
+        box-shadow: var(--shadow-hover);
+    }
+
+    .chart-title {
+        background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .chart-wrapper {
+        height: 400px;
+        position: relative;
+    }
+
+    /* Theme Switch */
+    .theme-switch {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+    }
+
+    .theme-switch-label {
+        margin-right: 0.5rem;
+        color: #dee2e6;
+        font-weight: 500;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    /* Dark mode adjustments for charts */
+    [data-theme="dark"] .chart-container {
+        background: var(--bg-card);
+    }
+
+    [data-theme="dark"] .chartjs-render-monitor {
+        filter: brightness(0.9);
+    }
+
+    .stats-header {
+        background: var(--bg-card);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        border-left: 6px solid #7c3aed;
+        transition: all 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+        .admin-title {
+            font-size: 2.2rem;
+        }
+
+        .admin-subtitle {
+            font-size: 1.1rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+        }
+    }
+  </style>
 </head>
 <body>
+<!-- Flash Messages -->
+<div class="alert-container">
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+</div>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark admin-navbar">
   <div class="container">
-    <a class="navbar-brand" th:href="@{/admin/dashboard}">🛠️ AutoDetail - Админ</a>
+    <a class="navbar-brand" th:href="@{/admin/dashboard}">🛠️ AutoDetail - Администратор</a>
     <div class="navbar-nav">
-      <a class="nav-link" th:href="@{/admin/dashboard}">📊 Главная</a>
       <a class="nav-link" th:href="@{/admin/items}">📦 Товары</a>
       <a class="nav-link" th:href="@{/admin/categories}">📁 Категории</a>
       <a class="nav-link" th:href="@{/admin/suppliers}">🏢 Поставщики</a>
@@ -22,9 +245,17 @@
       <a class="nav-link" th:href="@{/admin/reports}">📄 Отчеты</a>
     </div>
     <div class="navbar-nav ms-auto">
-                <span class="navbar-text admin-user-info me-3">
-                    Вы вошли как: <strong>Администратор</strong>
-                </span>
+      <div class="theme-switch">
+        <span class="theme-switch-label">☀️</span>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="theme-switch-label">🌙</span>
+      </div>
+      <span class="navbar-text admin-user-info me-3">
+            Вы вошли как: <strong>Администратор</strong>
+        </span>
       <form th:action="@{/auth/logout}" method="post" class="d-inline">
         <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : ''}" th:value="${_csrf != null ? _csrf.token : ''}"/>
         <button type="submit" class="btn btn-outline-light btn-sm admin-logout-btn">🚪 Выйти</button>
@@ -33,209 +264,218 @@
   </div>
 </nav>
 
-<div class="main-content admin-dashboard">
-  <div class="container mt-4">
-    <!-- Заголовок страницы -->
-    <div class="admin-page-header mb-5">
-      <div class="header-content">
-        <h1 class="page-title">📈 Статистика магазина</h1>
-        <p class="page-subtitle">Анализ ключевых показателей и динамики работы магазина</p>
-      </div>
+<div class="admin-dashboard">
+  <div class="container py-5">
+    <!-- Заголовок -->
+    <div class="stats-header">
+      <h1 class="admin-title">📈 Статистика магазина</h1>
+      <p class="admin-subtitle">Анализ ключевых показателей эффективности бизнеса</p>
     </div>
 
-    <!-- Основная статистика -->
-    <div class="row mb-5">
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="stats-card stats-primary">
-          <div class="stats-icon">📦</div>
-          <div class="stats-content">
-            <h3 th:text="${totalItems != null ? totalItems : 0}">0</h3>
-            <p>Товаров в каталоге</p>
-            <small class="stats-trend">📈 +12% за месяц</small>
+    <!-- Общая статистика -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="card-body text-center">
+            <div class="stat-number" th:text="${totalItems}">0</div>
+            <div class="stat-label">📦 Товаров</div>
           </div>
         </div>
       </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="stats-card stats-success">
-          <div class="stats-icon">🏢</div>
-          <div class="stats-content">
-            <h3 th:text="${totalSuppliers != null ? totalSuppliers : 0}">0</h3>
-            <p>Активных поставщиков</p>
-            <small class="stats-trend">📈 +2 за месяц</small>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="card-body text-center">
+            <div class="stat-number" th:text="${totalManagers}">0</div>
+            <div class="stat-label">👨‍💼 Менеджеров</div>
           </div>
         </div>
       </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="stats-card stats-warning">
-          <div class="stats-icon">👨‍💼</div>
-          <div class="stats-content">
-            <h3 th:text="${totalManagers != null ? totalManagers : 0}">0</h3>
-            <p>Работающих менеджеров</p>
-            <small class="stats-trend">→ Без изменений</small>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="card-body text-center">
+            <div class="stat-number" th:text="${totalOrders}">0</div>
+            <div class="stat-label">📋 Заказов</div>
           </div>
         </div>
       </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="stats-card stats-info">
-          <div class="stats-icon">👥</div>
-          <div class="stats-content">
-            <h3 th:text="${totalClients != null ? totalClients : 0}">0</h3>
-            <p>Зарегистрированных клиентов</p>
-            <small class="stats-trend">📈 +8% за месяц</small>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="card-body text-center">
+            <div class="stat-number" th:text="'₽' + ${averageOrderAmount}">₽0</div>
+            <div class="stat-label">💰 Средний чек</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Разделы аналитики -->
-    <div class="analytics-section mb-5">
-      <div class="section-header">
-        <h3 class="section-title">📊 Аналитика и метрики</h3>
-        <p class="section-subtitle">Ключевые показатели эффективности магазина</p>
-      </div>
-
-      <div class="row">
-        <div class="col-lg-4 col-md-6 mb-4">
-          <div class="analytics-card">
-            <div class="analytics-header sales">
-              <div class="analytics-icon">💰</div>
-              <h5>Продажи и выручка</h5>
-            </div>
-            <div class="analytics-body">
-              <div class="analytics-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Месячная выручка</span>
-                  <span class="stat-value">₽ 248,500</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Средний чек</span>
-                  <span class="stat-value">₽ 2,850</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Конверсия</span>
-                  <span class="stat-value">24.5%</span>
-                </div>
-              </div>
-              <div class="analytics-chart-placeholder">
-                <div class="chart-icon">📈</div>
-                <p>График продаж по месяцам</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-4 col-md-6 mb-4">
-          <div class="analytics-card">
-            <div class="analytics-header clients">
-              <div class="analytics-icon">👥</div>
-              <h5>Клиентская база</h5>
-            </div>
-            <div class="analytics-body">
-              <div class="analytics-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Новых клиентов</span>
-                  <span class="stat-value">47</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Повторные покупки</span>
-                  <span class="stat-value">62%</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Удержание</span>
-                  <span class="stat-value">78.3%</span>
-                </div>
-              </div>
-              <div class="analytics-chart-placeholder">
-                <div class="chart-icon">📊</div>
-                <p>Динамика роста клиентов</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-4 col-md-6 mb-4">
-          <div class="analytics-card">
-            <div class="analytics-header inventory">
-              <div class="analytics-icon">📦</div>
-              <h5>Складские запасы</h5>
-            </div>
-            <div class="analytics-body">
-              <div class="analytics-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Товаров в наличии</span>
-                  <span class="stat-value">1,247</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Средний оборот</span>
-                  <span class="stat-value">28 дней</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Заканчивается</span>
-                  <span class="stat-value">23 товара</span>
-                </div>
-              </div>
-              <div class="analytics-chart-placeholder">
-                <div class="chart-icon">📉</div>
-                <p>Оборот товаров</p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- Графики -->
+    <div class="chart-container">
+      <h3 class="chart-title" th:text="${itemsTitle}">📊 Динамика товаров</h3>
+      <div class="chart-wrapper">
+        <canvas id="itemsChart"></canvas>
       </div>
     </div>
 
-    <!-- Планы по развитию -->
-    <div class="development-section">
-      <div class="section-header">
-        <h3 class="section-title">🚀 Планы по развитию аналитики</h3>
-      </div>
-
-      <div class="row">
-        <div class="col-md-4 mb-4">
-          <div class="feature-roadmap">
-            <div class="roadmap-icon">📱</div>
-            <h5>Мобильная аналитика</h5>
-            <p class="text-muted">Статистика в реальном времени на мобильных устройствах</p>
-            <span class="roadmap-badge">В планах</span>
-          </div>
-        </div>
-        <div class="col-md-4 mb-4">
-          <div class="feature-roadmap">
-            <div class="roadmap-icon">🔮</div>
-            <h5>Прогнозы и AI</h5>
-            <p class="text-muted">Прогнозирование спроса и автоматические рекомендации</p>
-            <span class="roadmap-badge">В разработке</span>
-          </div>
-        </div>
-        <div class="col-md-4 mb-4">
-          <div class="feature-roadmap">
-            <div class="roadmap-icon">🌐</div>
-            <h5>Сравнительная аналитика</h5>
-            <p class="text-muted">Сравнение показателей с предыдущими периодами</p>
-            <span class="roadmap-badge">Скоро</span>
-          </div>
-        </div>
+    <div class="chart-container">
+      <h3 class="chart-title" th:text="${managersTitle}">👥 Динамика менеджеров</h3>
+      <div class="chart-wrapper">
+        <canvas id="managersChart"></canvas>
       </div>
     </div>
 
-    <!-- Уведомление о разработке -->
-    <div class="alert alert-info mt-5">
-      <div class="d-flex align-items-center">
-        <div class="alert-icon me-3">🚧</div>
-        <div>
-          <h6 class="alert-title mb-1">Раздел статистики развивается</h6>
-          <p class="mb-0">
-            Мы постоянно работаем над улучшением аналитики. В ближайшее время появятся
-            интерактивные графики, детальные отчеты и персонализированные дашборды.
-          </p>
-        </div>
+    <div class="chart-container">
+      <h3 class="chart-title" th:text="${ordersTitle}">📦 Динамика заказов</h3>
+      <div class="chart-wrapper">
+        <canvas id="ordersChart"></canvas>
       </div>
     </div>
   </div>
 </div>
 
-<div th:insert="~{fragments/footer :: footer}"></div>
+<script>
+  // Theme management
+  document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const currentTheme = localStorage.getItem('theme') || 'light';
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+      // Apply saved theme
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.checked = currentTheme === 'dark';
+
+      // Toggle theme
+      themeToggle.addEventListener('change', function() {
+          const newTheme = this.checked ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+
+          // Пересоздаем графики при смене темы
+          setTimeout(createCharts, 100);
+      });
+
+      // Автоматически закрываем алерты через 5 секунд
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(alert => {
+          setTimeout(() => {
+              const bsAlert = new bootstrap.Alert(alert);
+              bsAlert.close();
+          }, 5000);
+      });
+
+      // Создаем графики
+      createCharts();
+  });
+
+// Получаем данные из Thymeleaf - используем inline JavaScript
+const itemsLabels = /*[[${itemsLabels}]]*/ ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const itemsData = /*[[${itemsData}]]*/ [100, 120, 90, 150, 130, 110, 140];
+
+const managersLabels = /*[[${managersLabels}]]*/ ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const managersData = /*[[${managersData}]]*/ [2, 3, 3, 4, 4, 5, 5];
+
+const ordersLabels = /*[[${ordersLabels}]]*/ ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const ordersData = /*[[${ordersData}]]*/ [5, 8, 12, 6, 15, 3, 7];
+
+console.log('Items data:', itemsLabels, itemsData);
+console.log('Managers data:', managersLabels, managersData);
+console.log('Orders data:', ordersLabels, ordersData);
+
+let itemsChart, managersChart, ordersChart;
+
+// Функция создания графика
+function createChart(canvasId, labels, data, label, color) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) {
+        console.error('Canvas not found:', canvasId);
+        return null;
+    }
+
+    // Уничтожаем старый график если существует
+    if (canvasId === 'itemsChart' && itemsChart) itemsChart.destroy();
+    if (canvasId === 'managersChart' && managersChart) managersChart.destroy();
+    if (canvasId === 'ordersChart' && ordersChart) ordersChart.destroy();
+
+    const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDarkTheme ? '#f7fafc' : '#374151';
+    const gridColor = isDarkTheme ? '#4a5568' : '#e5e7eb';
+
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: color,
+                backgroundColor: color + '40',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: color,
+                pointBorderColor: isDarkTheme ? '#2d3748' : '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: textColor,
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDarkTheme ? '#2d3748' : '#fff',
+                    titleColor: textColor,
+                    bodyColor: textColor,
+                    borderColor: color,
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: gridColor
+                    },
+                    ticks: {
+                        color: textColor
+                    }
+                }
+            }
+        }
+    });
+
+    // Сохраняем ссылку на график
+    if (canvasId === 'itemsChart') itemsChart = chart;
+    if (canvasId === 'managersChart') managersChart = chart;
+    if (canvasId === 'ordersChart') ordersChart = chart;
+
+    return chart;
+}
+
+// Функция создания всех графиков
+function createCharts() {
+    console.log('Creating charts...');
+
+    createChart('itemsChart', itemsLabels, itemsData, 'Количество товаров', '#7c3aed');
+    createChart('managersChart', managersLabels, managersData, 'Количество менеджеров', '#10b981');
+    createChart('ordersChart', ordersLabels, ordersData, 'Количество заказов', '#f59e0b');
+
+    console.log('Charts created successfully!');
+}
+</script>
 </body>
 </html>

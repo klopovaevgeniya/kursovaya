@@ -4,16 +4,399 @@
   <meta charset="UTF-8">
   <title>Отчеты - Панель администратора</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link th:href="@{/css/style.css}" rel="stylesheet">
-  <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
-  <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+  <style>
+    :root {
+        --bg-primary: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+        --bg-card: white;
+        --bg-navbar: #212529;
+        --text-primary: #1f2937;
+        --text-secondary: #64748b;
+        --text-muted: #6b7280;
+        --border-color: rgba(0,0,0,0.08);
+        --shadow: 0 10px 25px rgba(0,0,0,0.08);
+        --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
+    }
+
+    [data-theme="dark"] {
+        --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        --bg-card: #2d3748;
+        --bg-navbar: #1a202c;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-muted: #cbd5e0;
+        --border-color: rgba(255,255,255,0.1);
+        --shadow: 0 10px 25px rgba(0,0,0,0.3);
+        --shadow-hover: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
+    .admin-dashboard {
+        background: var(--bg-primary);
+        min-height: 100vh;
+        padding: 2rem 0;
+        transition: all 0.3s ease;
+    }
+
+    .report-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+        border: none;
+        transition: all 0.3s ease;
+        height: 100%;
+        border-left: 4px solid;
+    }
+
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .report-card-header {
+        padding: 1.5rem;
+        color: white;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .report-card-header.primary {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        border-left-color: #7c3aed;
+    }
+    .report-card-header.success {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        border-left-color: #10b981;
+    }
+    .report-card-header.warning {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        border-left-color: #f59e0b;
+    }
+    .report-card-header.info {
+        background: linear-gradient(135deg, #06b6d4, #22d3ee);
+        border-left-color: #06b6d4;
+    }
+    .report-card-header.danger {
+        background: linear-gradient(135deg, #ef4444, #f87171);
+        border-left-color: #ef4444;
+    }
+    .report-card-header.secondary {
+        background: linear-gradient(135deg, #6b7280, #9ca3af);
+        border-left-color: #6b7280;
+    }
+
+    .report-icon {
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.2);
+    }
+
+    .report-title {
+        font-weight: 700;
+        margin: 0;
+        flex: 1;
+        font-size: 1.3rem;
+    }
+
+    .report-card-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 120px);
+    }
+
+    .report-description {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+        flex-grow: 1;
+        transition: all 0.3s ease;
+    }
+
+    .report-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .report-features li {
+        padding: 0.25rem 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .report-features li:before {
+        content: "✅ ";
+        margin-right: 0.5rem;
+    }
+
+    .date-picker {
+        background: var(--data-theme="dark" ? #4a5568 : #f8f9fa);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-report {
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-report:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .admin-page-header {
+        background: var(--bg-card);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        border-left: 6px solid #7c3aed;
+        transition: all 0.3s ease;
+    }
+
+    .page-title {
+        background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        font-size: 2.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin: 0;
+        transition: all 0.3s ease;
+    }
+
+    .alert {
+        border-radius: 12px;
+        border: none;
+        box-shadow: var(--shadow);
+        border-left: 4px solid;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        color: #16a34a;
+        border-left-color: #16a34a;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        color: #dc2626;
+        border-left-color: #dc2626;
+    }
+
+    .alert-info {
+        background: #f0f9ff;
+        color: #0369a1;
+        border-left-color: #0369a1;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        color: #92400e;
+        border-left-color: #f59e0b;
+    }
+
+    [data-theme="dark"] .alert-success {
+        background: #064e3b;
+        color: #34d399;
+        border-left-color: #10b981;
+    }
+
+    [data-theme="dark"] .alert-danger {
+        background: #7f1d1d;
+        color: #fca5a5;
+        border-left-color: #ef4444;
+    }
+
+    [data-theme="dark"] .alert-info {
+        background: #164e63;
+        color: #7dd3fc;
+        border-left-color: #0ea5e9;
+    }
+
+    [data-theme="dark"] .alert-warning {
+        background: #78350f;
+        color: #fcd34d;
+        border-left-color: #f59e0b;
+    }
+
+    /* Theme Switch */
+    .theme-switch {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+    }
+
+    .theme-switch-label {
+        margin-right: 0.5rem;
+        color: #dee2e6;
+        font-weight: 500;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    /* Dark mode adjustments */
+    [data-theme="dark"] .form-control {
+        background-color: #4a5568;
+        border-color: #718096;
+        color: #f7fafc;
+    }
+
+    [data-theme="dark"] .form-control:focus {
+        background-color: #4a5568;
+        border-color: #7c3aed;
+        color: #f7fafc;
+    }
+
+    [data-theme="dark"] .card {
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .card-header {
+        background-color: #374151;
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .text-muted {
+        color: #cbd5e0 !important;
+    }
+
+    .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        background: var(--bg-card);
+        color: var(--text-primary);
+    }
+
+    .form-control:focus {
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        outline: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .quick-report-badge {
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+
+    .stats-number {
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .stats-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        transition: all 0.3s ease;
+    }
+  </style>
 </head>
 <body>
+<!-- Flash Messages -->
+<div class="alert-container">
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+</div>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark admin-navbar">
   <div class="container">
     <a class="navbar-brand" th:href="@{/admin/dashboard}">🛠️ AutoDetail - Админ</a>
     <div class="navbar-nav">
-      <a class="nav-link" th:href="@{/admin/dashboard}">📊 Главная</a>
       <a class="nav-link" th:href="@{/admin/items}">📦 Товары</a>
       <a class="nav-link" th:href="@{/admin/categories}">📁 Категории</a>
       <a class="nav-link" th:href="@{/admin/suppliers}">🏢 Поставщики</a>
@@ -22,9 +405,17 @@
       <a class="nav-link active" th:href="@{/admin/reports}">📄 Отчеты</a>
     </div>
     <div class="navbar-nav ms-auto">
-                <span class="navbar-text admin-user-info me-3">
-                    Вы вошли как: <strong>Администратор</strong>
-                </span>
+      <div class="theme-switch">
+        <span class="theme-switch-label">☀️</span>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="theme-switch-label">🌙</span>
+      </div>
+      <span class="navbar-text admin-user-info me-3">
+        Вы вошли как: <strong>Администратор</strong>
+      </span>
       <form th:action="@{/auth/logout}" method="post" class="d-inline">
         <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : ''}" th:value="${_csrf != null ? _csrf.token : ''}"/>
         <button type="submit" class="btn btn-outline-light btn-sm admin-logout-btn">🚪 Выйти</button>
@@ -33,7 +424,7 @@
   </div>
 </nav>
 
-<div class="main-content admin-dashboard">
+<div class="admin-dashboard">
   <div class="container mt-4">
     <!-- Заголовок страницы -->
     <div class="admin-page-header mb-5">
@@ -43,155 +434,382 @@
       </div>
     </div>
 
-    <!-- Основной контент -->
-    <div class="reports-container">
-      <div class="reports-welcome-card mb-5">
-        <div class="reports-welcome-content">
-          <div class="reports-icon">📋</div>
-          <h2 class="reports-welcome-title">Система отчетов</h2>
-          <p class="reports-welcome-text">
-            В этом разделе вы можете генерировать и просматривать различные отчеты
-            по деятельности магазина. Выберите нужный тип отчета для начала работы.
-          </p>
-        </div>
-      </div>
+    <!-- Flash сообщения -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+      <span th:text="${success}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+      <span th:text="${error}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 
-      <!-- Карточки отчетов -->
-      <div class="row">
-        <div class="col-xl-3 col-lg-6 mb-4">
-          <div class="report-card">
-            <div class="report-card-header primary">
-              <div class="report-icon">📦</div>
-              <h5 class="report-title">Отчет по товарам</h5>
-            </div>
-            <div class="report-card-body">
-              <p class="report-description">
-                Анализ остатков, движение товаров, популярные позиции
-              </p>
-              <ul class="report-features">
-                <li>Остатки на складе</li>
-                <li>Товарооборот</li>
-                <li>Популярные товары</li>
-              </ul>
-              <button class="btn btn-primary btn-report w-100" disabled>
-                📊 Сгенерировать отчет
-              </button>
-            </div>
+    <!-- Карточки отчетов -->
+    <div class="row">
+      <!-- Отчет по продажам -->
+      <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="report-card">
+          <div class="report-card-header success">
+            <div class="report-icon">💰</div>
+            <h5 class="report-title">Отчет по продажам</h5>
           </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 mb-4">
-          <div class="report-card">
-            <div class="report-card-header success">
-              <div class="report-icon">💰</div>
-              <h5 class="report-title">Финансовый отчет</h5>
-            </div>
-            <div class="report-card-body">
-              <p class="report-description">
-                Доходы, расходы, прибыль и финансовые показатели
-              </p>
-              <ul class="report-features">
-                <li>Выручка и прибыль</li>
-                <li>Расходы магазина</li>
-                <li>Финансовая аналитика</li>
-              </ul>
-              <button class="btn btn-success btn-report w-100" disabled>
-                💸 Сгенерировать отчет
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 mb-4">
-          <div class="report-card">
-            <div class="report-card-header warning">
-              <div class="report-icon">👥</div>
-              <h5 class="report-title">Отчет по клиентам</h5>
-            </div>
-            <div class="report-card-body">
-              <p class="report-description">
-                Активность клиентов, история заказов, клиентская база
-              </p>
-              <ul class="report-features">
-                <li>Активные клиенты</li>
-                <li>История заказов</li>
-                <li>Клиентская аналитика</li>
-              </ul>
-              <button class="btn btn-warning btn-report w-100" disabled>
-                👤 Сгенерировать отчет
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 mb-4">
-          <div class="report-card">
-            <div class="report-card-header info">
-              <div class="report-icon">📈</div>
-              <h5 class="report-title">Аналитический отчет</h5>
-            </div>
-            <div class="report-card-body">
-              <p class="report-description">
-                Комплексный анализ эффективности работы магазина
-              </p>
-              <ul class="report-features">
-                <li>KPI показатели</li>
-                <li>Эффективность работы</li>
-                <li>Тренды и прогнозы</li>
-              </ul>
-              <button class="btn btn-info btn-report w-100" disabled>
-                🔍 Сгенерировать отчет
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Дополнительные функции -->
-      <div class="row mt-4">
-        <div class="col-md-6 mb-4">
-          <div class="report-feature-card">
-            <div class="feature-icon">🕒</div>
-            <div class="feature-content">
-              <h5>Автоматические отчеты</h5>
-              <p class="text-muted">
-                Настройте автоматическую генерацию отчетов по расписанию
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6 mb-4">
-          <div class="report-feature-card">
-            <div class="feature-icon">📤</div>
-            <div class="feature-content">
-              <h5>Экспорт данных</h5>
-              <p class="text-muted">
-                Экспортируйте отчеты в форматах PDF, Excel и CSV
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Уведомление о разработке -->
-      <div class="alert alert-info mt-5">
-        <div class="d-flex align-items-center">
-          <div class="alert-icon me-3">🚧</div>
-          <div>
-            <h6 class="alert-title mb-1">Раздел в разработке</h6>
-            <p class="mb-0">
-              Система отчетов находится в стадии активной разработки.
-              В ближайшее время здесь появятся все необходимые функции для анализа работы магазина.
+          <div class="report-card-body">
+            <p class="report-description">
+              Детальный отчет по всем оформленным заказам за выбранный период
             </p>
+            <ul class="report-features">
+              <li>Список всех заказов</li>
+              <li>Суммы и даты заказов</li>
+              <li>Информация по менеджерам</li>
+              <li>Статусы заказов</li>
+            </ul>
+
+            <div class="date-picker">
+              <label class="form-label small">Период отчета:</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="date" class="form-control form-control-sm" id="salesStartDate"
+                         th:value="${defaultStartDate}">
+                </div>
+                <div class="col-6">
+                  <input type="date" class="form-control form-control-sm" id="salesEndDate"
+                         th:value="${defaultEndDate}">
+                </div>
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <a href="#" class="btn btn-success btn-report" onclick="generateSalesReport()">
+                📊 Скачать отчет
+              </a>
+              <a th:href="@{/admin/reports/quick-sales}" class="btn btn-outline-success btn-sm">
+                🚀 Быстрый отчет (за 30 дней)
+              </a>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Отчет по товарам -->
+      <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="report-card">
+          <div class="report-card-header primary">
+            <div class="report-icon">📦</div>
+            <h5 class="report-title">Отчет по товарам</h5>
+          </div>
+          <div class="report-card-body">
+            <p class="report-description">
+              Полная информация о всех товарах на складе и их стоимости
+            </p>
+            <ul class="report-features">
+              <li>Остатки на складе</li>
+              <li>Общая стоимость товаров</li>
+              <li>Информация по категориям</li>
+              <li>Данные поставщиков</li>
+            </ul>
+
+            <div class="date-picker" style="background: transparent; padding: 0;">
+              <label class="form-label small text-muted">Отчет формируется по текущему состоянию склада</label>
+            </div>
+
+            <a th:href="@{/admin/reports/inventory}" class="btn btn-primary btn-report w-100">
+              📋 Скачать отчет
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Отчет по менеджерам -->
+      <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="report-card">
+          <div class="report-card-header info">
+            <div class="report-icon">👨‍💼</div>
+            <h5 class="report-title">Отчет по менеджерам</h5>
+          </div>
+          <div class="report-card-body">
+            <p class="report-description">
+              Анализ эффективности работы менеджеров по продажам
+            </p>
+            <ul class="report-features">
+              <li>Количество заказов</li>
+              <li>Общая сумма продаж</li>
+              <li>Средний чек</li>
+              <li>Доля от общих продаж</li>
+            </ul>
+
+            <div class="date-picker">
+              <label class="form-label small">Период отчета:</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="date" class="form-control form-control-sm" id="managersStartDate"
+                         th:value="${defaultStartDate}">
+                </div>
+                <div class="col-6">
+                  <input type="date" class="form-control form-control-sm" id="managersEndDate"
+                         th:value="${defaultEndDate}">
+                </div>
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <a href="#" class="btn btn-info btn-report" onclick="generateManagersReport()">
+                📈 Скачать отчет
+              </a>
+              <a th:href="@{/admin/reports/quick-managers}" class="btn btn-outline-info btn-sm">
+                🚀 Быстрый отчет (за 30 дней)
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Отчет по клиентам -->
+      <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="report-card">
+          <div class="report-card-header warning">
+            <div class="report-icon">👥</div>
+            <h5 class="report-title">Отчет по клиентам</h5>
+          </div>
+          <div class="report-card-body">
+            <p class="report-description">
+              Анализ клиентской базы и активности покупателей
+            </p>
+            <ul class="report-features">
+              <li>Активные клиенты</li>
+              <li>История заказов</li>
+              <li>Средний чек клиентов</li>
+              <li>Контактная информация</li>
+            </ul>
+
+            <div class="date-picker">
+              <label class="form-label small">Период отчета:</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="date" class="form-control form-control-sm" id="clientsStartDate"
+                         th:value="${defaultStartDate}">
+                </div>
+                <div class="col-6">
+                  <input type="date" class="form-control form-control-sm" id="clientsEndDate"
+                         th:value="${defaultEndDate}">
+                </div>
+              </div>
+            </div>
+
+            <a href="#" class="btn btn-warning btn-report w-100" onclick="generateClientsReport()">
+              👤 Скачать отчет
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Финансовый отчет -->
+      <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="report-card">
+          <div class="report-card-header danger">
+            <div class="report-icon">💸</div>
+            <h5 class="report-title">Финансовый отчет</h5>
+          </div>
+          <div class="report-card-body">
+            <p class="report-description">
+              Сводка по финансовым показателям и движению денежных средств
+            </p>
+            <ul class="report-features">
+              <li>Общая выручка</li>
+              <li>Средний чек</li>
+              <li>Динамика продаж</li>
+              <li>Финансовая аналитика</li>
+            </ul>
+
+            <div class="alert alert-info mt-auto">
+              <small>💡 Используйте отчет по продажам для финансового анализа</small>
+            </div>
+
+            <a th:href="@{/admin/reports/quick-sales}" class="btn btn-danger btn-report w-100">
+              💰 Скачать финансовый отчет
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Аналитический отчет -->
+      <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="report-card">
+          <div class="report-card-header secondary">
+            <div class="report-icon">📊</div>
+            <h5 class="report-title">Аналитический отчет</h5>
+          </div>
+          <div class="report-card-body">
+            <p class="report-description">
+              Комплексный анализ эффективности работы магазина
+            </p>
+            <ul class="report-features">
+              <li>KPI показатели</li>
+              <li>Эффективность работы</li>
+              <li>Тренды и прогнозы</li>
+              <li>Сравнительная аналитика</li>
+            </ul>
+
+            <div class="alert alert-warning mt-auto">
+              <small>📈 Для полной аналитики скачайте все отчеты</small>
+            </div>
+
+            <div class="d-grid gap-2">
+              <a th:href="@{/admin/reports/quick-sales}" class="btn btn-secondary btn-sm">Продажи</a>
+              <a th:href="@{/admin/reports/inventory}" class="btn btn-secondary btn-sm">Товары</a>
+              <a th:href="@{/admin/reports/quick-managers}" class="btn btn-secondary btn-sm">Менеджеры</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Статистика системы -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">📈 Статистика системы</h5>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-md-3 mb-3">
+                <div class="stats-number text-primary" id="statsTotalOrders">0</div>
+                <small class="stats-label">Всего заказов</small>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="stats-number text-success" id="statsTotalItems">0</div>
+                <small class="stats-label">Товаров на складе</small>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="stats-number text-info" id="statsTotalManagers">0</div>
+                <small class="stats-label">Активных менеджеров</small>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="stats-number text-warning" id="statsTotalClients">0</div>
+                <small class="stats-label">Зарегистрированных клиентов</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Информация о форматах -->
+    <div class="alert alert-success mt-5">
+      <div class="d-flex align-items-center">
+        <div class="alert-icon me-3">✅</div>
+        <div>
+          <h6 class="alert-title mb-1">Все отчеты готовы к использованию</h6>
+          <p class="mb-0">
+            Отчеты генерируются в формате Excel (.xlsx) и содержат подробную информацию
+            для дальнейшего анализа. Вы можете выбрать период для отчетов или использовать
+            быстрые отчеты за последние 30 дней.
+          </p>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div th:insert="~{fragments/footer :: footer}"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Theme management
+  document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const currentTheme = localStorage.getItem('theme') || 'light';
+
+      // Apply saved theme
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.checked = currentTheme === 'dark';
+
+      // Toggle theme
+      themeToggle.addEventListener('change', function() {
+          const newTheme = this.checked ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+      });
+
+      // Функции для генерации отчетов с выбранными датами
+      function generateSalesReport() {
+          const startDate = document.getElementById('salesStartDate').value;
+          const endDate = document.getElementById('salesEndDate').value;
+          if (validateDates('salesStartDate', 'salesEndDate')) {
+              const url = `/admin/reports/sales?startDate=${startDate}&endDate=${endDate}`;
+              window.location.href = url;
+          }
+      }
+
+      function generateManagersReport() {
+          const startDate = document.getElementById('managersStartDate').value;
+          const endDate = document.getElementById('managersEndDate').value;
+          if (validateDates('managersStartDate', 'managersEndDate')) {
+              const url = `/admin/reports/managers?startDate=${startDate}&endDate=${endDate}`;
+              window.location.href = url;
+          }
+      }
+
+      function generateClientsReport() {
+          const startDate = document.getElementById('clientsStartDate').value;
+          const endDate = document.getElementById('clientsEndDate').value;
+          if (validateDates('clientsStartDate', 'clientsEndDate')) {
+              const url = `/admin/reports/clients?startDate=${startDate}&endDate=${endDate}`;
+              window.location.href = url;
+          }
+      }
+
+      // Загрузка статистики системы
+      fetch('/admin/api/reports/info')
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  document.getElementById('statsTotalOrders').textContent = data.totalOrders;
+                  document.getElementById('statsTotalItems').textContent = data.totalItems;
+                  document.getElementById('statsTotalManagers').textContent = data.totalManagers;
+                  document.getElementById('statsTotalClients').textContent = data.totalClients;
+              }
+          })
+          .catch(error => {
+              console.error('Error loading stats:', error);
+          });
+
+      // Установка максимальной даты как сегодня
+      const today = new Date().toISOString().split('T')[0];
+      document.querySelectorAll('input[type="date"]').forEach(input => {
+          input.max = today;
+      });
+
+      // Валидация дат
+      function validateDates(startDateId, endDateId) {
+          const startDate = document.getElementById(startDateId).value;
+          const endDate = document.getElementById(endDateId).value;
+
+          if (startDate && endDate && startDate > endDate) {
+              alert('Дата начала не может быть позже даты окончания');
+              return false;
+          }
+          return true;
+      }
+
+      // Добавляем валидацию на все date pickers
+      document.querySelectorAll('input[type="date"]').forEach(input => {
+          input.addEventListener('change', function() {
+              const container = this.closest('.date-picker');
+              const inputs = container.querySelectorAll('input[type="date"]');
+              if (inputs[0].value && inputs[1].value && inputs[0].value > inputs[1].value) {
+                  this.style.borderColor = '#dc3545';
+              } else {
+                  this.style.borderColor = '';
+              }
+          });
+      });
+
+      // Сделать функции глобальными
+      window.generateSalesReport = generateSalesReport;
+      window.generateManagersReport = generateManagersReport;
+      window.generateClientsReport = generateClientsReport;
+      window.validateDates = validateDates;
+  });
+</script>
 </body>
 </html>

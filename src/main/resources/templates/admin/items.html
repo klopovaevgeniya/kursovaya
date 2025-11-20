@@ -5,22 +5,48 @@
   <title>Товары - Панель администратора</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+      --bg-card: white;
+      --bg-navbar: #212529;
+      --text-primary: #1f2937;
+      --text-secondary: #64748b;
+      --text-muted: #6b7280;
+      --border-color: rgba(0,0,0,0.08);
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      --bg-card: #2d3748;
+      --bg-navbar: #1a202c;
+      --text-primary: #f7fafc;
+      --text-secondary: #e2e8f0;
+      --text-muted: #cbd5e0;
+      --border-color: rgba(255,255,255,0.1);
+      --shadow: 0 10px 25px rgba(0,0,0,0.3);
+      --shadow-hover: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
     .admin-dashboard {
-        background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+        background: var(--bg-primary);
         min-height: 100vh;
         padding: 2rem 0;
+        transition: all 0.3s ease;
     }
 
     .admin-header {
-        background: white;
+        background: var(--bg-card);
         border-radius: 20px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        box-shadow: var(--shadow);
         padding: 2.5rem;
         margin-bottom: 2rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         border-left: 6px solid #7c3aed;
+        transition: all 0.3s ease;
     }
 
     .admin-title {
@@ -34,10 +60,11 @@
     }
 
     .admin-subtitle {
-        color: #64748b;
+        color: var(--text-secondary);
         font-size: 1.2rem;
         font-weight: 500;
         margin: 0;
+        transition: all 0.3s ease;
     }
 
     .btn-success {
@@ -57,10 +84,11 @@
     .alert {
         border-radius: 12px;
         border: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow);
         border-left: 4px solid;
         padding: 1rem 1.5rem;
         margin-bottom: 2rem;
+        transition: all 0.3s ease;
     }
 
     .alert-success {
@@ -75,12 +103,25 @@
         border-left-color: #dc2626;
     }
 
+    [data-theme="dark"] .alert-success {
+        background: #064e3b;
+        color: #34d399;
+        border-left-color: #10b981;
+    }
+
+    [data-theme="dark"] .alert-danger {
+        background: #7f1d1d;
+        color: #fca5a5;
+        border-left-color: #ef4444;
+    }
+
     .filter-card {
-        background: white;
+        background: var(--bg-card);
         border-radius: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        box-shadow: var(--shadow);
         overflow: hidden;
         margin-bottom: 2rem;
+        transition: all 0.3s ease;
     }
 
     .filter-header {
@@ -105,6 +146,8 @@
         padding: 0.75rem 1rem;
         font-size: 1rem;
         transition: all 0.3s ease;
+        background: var(--bg-card);
+        color: var(--text-primary);
     }
 
     .form-control:focus {
@@ -128,6 +171,7 @@
         border-radius: 0 10px 10px 0;
         font-weight: 600;
         color: #374151;
+        transition: all 0.3s ease;
     }
 
     .btn-primary {
@@ -161,10 +205,11 @@
     }
 
     .table-card {
-        background: white;
+        background: var(--bg-card);
         border-radius: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        box-shadow: var(--shadow);
         overflow: hidden;
+        transition: all 0.3s ease;
     }
 
     .table-header {
@@ -197,6 +242,7 @@
     .table {
         margin: 0;
         border: none;
+        width: 100%;
     }
 
     .table thead th {
@@ -212,11 +258,11 @@
 
     .table tbody tr {
         transition: all 0.3s ease;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid var(--border-color);
     }
 
     .table tbody tr:hover {
-        background-color: #f8fafc;
+        background-color: var(--data-theme="dark" ? #4a5568 : #f8fafc);
         transform: translateY(-1px);
     }
 
@@ -224,6 +270,7 @@
         padding: 1rem 1.5rem;
         vertical-align: middle;
         border: none;
+        color: var(--text-primary);
     }
 
     .empty-state {
@@ -239,17 +286,19 @@
     }
 
     .empty-title {
-        color: #374151;
+        color: var(--text-primary);
         margin-bottom: 1rem;
         font-weight: 600;
         font-size: 1.5rem;
+        transition: all 0.3s ease;
     }
 
     .empty-text {
-        color: #6b7280;
+        color: var(--text-muted);
         font-size: 1.1rem;
         margin-bottom: 2rem;
         line-height: 1.6;
+        transition: all 0.3s ease;
     }
 
     .quantity-badge {
@@ -291,6 +340,31 @@
     .status-badge.none {
         background: #fee2e2;
         color: #991b1b;
+    }
+
+    [data-theme="dark"] .quantity-badge.available {
+        background: #064e3b;
+        color: #34d399;
+    }
+
+    [data-theme="dark"] .quantity-badge.out-of-stock {
+        background: #7f1d1d;
+        color: #fca5a5;
+    }
+
+    [data-theme="dark"] .status-badge.high {
+        background: #064e3b;
+        color: #34d399;
+    }
+
+    [data-theme="dark"] .status-badge.low {
+        background: #78350f;
+        color: #fcd34d;
+    }
+
+    [data-theme="dark"] .status-badge.none {
+        background: #7f1d1d;
+        color: #fca5a5;
     }
 
     .action-buttons {
@@ -343,12 +417,125 @@
 
     .item-arctical {
         font-weight: 600;
-        color: #374151;
+        color: var(--text-primary);
     }
 
     .item-name {
         font-weight: 500;
-        color: #1f2937;
+        color: var(--text-primary);
+    }
+
+    /* Theme Switch */
+    .theme-switch {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+    }
+
+    .theme-switch-label {
+        margin-right: 0.5rem;
+        color: #dee2e6;
+        font-weight: 500;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    /* Dark mode adjustments */
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-select {
+        background-color: #4a5568;
+        border-color: #718096;
+        color: #f7fafc;
+    }
+
+    [data-theme="dark"] .form-control:focus,
+    [data-theme="dark"] .form-select:focus {
+        background-color: #4a5568;
+        border-color: #7c3aed;
+        color: #f7fafc;
+    }
+
+    [data-theme="dark"] .input-group-text {
+        background: #4a5568;
+        border-color: #718096;
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .modal-content {
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .modal-header,
+    [data-theme="dark"] .modal-footer {
+        border-color: var(--border-color);
+    }
+
+    /* Широкая таблица */
+    .table-responsive {
+        font-size: 0.95rem;
+    }
+
+    .table th, .table td {
+        white-space: nowrap;
+    }
+
+    .table td:nth-child(3) { /* Название товара */
+        min-width: 200px;
+        max-width: 300px;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+    .table td:nth-child(6) { /* Поставщик */
+        min-width: 120px;
+    }
+
+    .table td:nth-child(7) { /* Категория */
+        min-width: 120px;
     }
 
     @media (max-width: 768px) {
@@ -370,22 +557,49 @@
             width: 2.2rem;
             height: 2.2rem;
         }
+
+        .table td:nth-child(3),
+        .table td:nth-child(6),
+        .table td:nth-child(7) {
+            min-width: auto;
+            max-width: none;
+        }
     }
   </style>
 </head>
 <body>
+<!-- Flash Messages -->
+<div class="alert-container">
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+</div>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark admin-navbar">
   <div class="container">
     <a class="navbar-brand" th:href="@{/admin/dashboard}">🛠️ AutoDetail - Администратор</a>
     <div class="navbar-nav">
       <a class="nav-link active" th:href="@{/admin/items}">📦 Товары</a>
-      <a class="nav-link" th:href="@{/admin/suppliers}">🏢 Поставщики</a>
       <a class="nav-link" th:href="@{/admin/categories}">📁 Категории</a>
+      <a class="nav-link" th:href="@{/admin/suppliers}">🏢 Поставщики</a>
       <a class="nav-link" th:href="@{/admin/managers}">👨‍💼 Менеджеры</a>
       <a class="nav-link" th:href="@{/admin/statistics}">📈 Статистика</a>
       <a class="nav-link" th:href="@{/admin/reports}">📄 Отчеты</a>
     </div>
     <div class="navbar-nav ms-auto">
+      <div class="theme-switch">
+        <span class="theme-switch-label">☀️</span>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="theme-switch-label">🌙</span>
+      </div>
       <span class="navbar-text admin-user-info me-3">
         Вы вошли как: <strong>Администратор</strong>
       </span>
@@ -579,8 +793,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Обработка удаления товаров
+  // Theme management
   document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const currentTheme = localStorage.getItem('theme') || 'light';
+
+      // Apply saved theme
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.checked = currentTheme === 'dark';
+
+      // Toggle theme
+      themeToggle.addEventListener('change', function() {
+          const newTheme = this.checked ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+      });
+
+      // Обработка удаления товаров
       const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
       const deleteForm = document.getElementById('deleteForm');
       let currentItemId = null;

@@ -2,6 +2,79 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <footer class="footer" th:fragment="footer">
+    <style>
+        :root {
+            --bg-footer: #1f2937;
+            --text-footer: #f9fafb;
+            --text-footer-muted: #d1d5db;
+            --border-footer: #374151;
+        }
+
+        [data-theme="dark"] {
+            --bg-footer: #111827;
+            --text-footer: #f9fafb;
+            --text-footer-muted: #9ca3af;
+            --border-footer: #374151;
+        }
+
+        .footer {
+            background: var(--bg-footer);
+            color: var(--text-footer);
+            padding: 3rem 0 2rem;
+            margin-top: auto;
+            transition: all 0.3s ease;
+        }
+
+        .footer h5 {
+            color: var(--text-footer);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .footer p {
+            color: var(--text-footer-muted);
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border-footer);
+            margin: 2rem 0 1.5rem;
+            opacity: 0.6;
+        }
+
+        .footer .container {
+            max-width: 1200px;
+        }
+
+        .footer a {
+            color: var(--text-footer-muted);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: var(--text-footer);
+        }
+
+        @media (max-width: 768px) {
+            .footer {
+                padding: 2rem 0 1.5rem;
+                text-align: center;
+            }
+
+            .footer .row > div {
+                margin-bottom: 2rem;
+            }
+
+            .footer .row > div:last-child {
+                margin-bottom: 0;
+            }
+        }
+    </style>
     <div class="container">
         <div class="row">
             <div class="col-md-4">
@@ -24,14 +97,6 @@
         <div class="row">
             <div class="col-md-6">
                 <p>&copy; 2025 AutoDetail. Все права защищены.</p>
-            </div>
-            <div class="col-md-6">
-                <div class="social-links">
-                    <a href="#">📘</a>
-                    <a href="#">📷</a>
-                    <a href="#">💬</a>
-                    <a href="#">🐦</a>
-                </div>
             </div>
         </div>
     </div>

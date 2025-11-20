@@ -4,11 +4,165 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark" th:fragment="header">
     <div class="container">
         <a class="navbar-brand" th:href="@{/}">🛠️ AutoDetail</a>
-        <div class="navbar-nav">
+        <div class="navbar-nav ms-auto">
+            <div class="theme-switch">
+                <span class="theme-switch-label">🌙</span>
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="theme-switch-label">☀️</span>
+            </div>
             <a class="nav-link" th:href="@{/auth/login}">Вход</a>
             <a class="nav-link" th:href="@{/auth/register}">Регистрация</a>
         </div>
     </div>
 </nav>
+
+<style>
+    :root {
+        --bg-primary: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+        --bg-card: white;
+        --bg-navbar: #212529;
+        --text-primary: #1f2937;
+        --text-secondary: #64748b;
+        --text-muted: #6b7280;
+        --border-color: rgba(0,0,0,0.08);
+        --shadow: 0 10px 25px rgba(0,0,0,0.08);
+        --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
+    }
+
+    [data-theme="dark"] {
+        --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        --bg-card: #2d3748;
+        --bg-navbar: #1a202c;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-muted: #cbd5e0;
+        --border-color: rgba(255,255,255,0.1);
+        --shadow: 0 10px 25px rgba(0,0,0,0.3);
+        --shadow-hover: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
+    /* Theme Switch */
+    .theme-switch {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+    }
+
+    .theme-switch-label {
+        margin-right: 0.5rem;
+        color: #dee2e6;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 28px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+
+    .navbar-brand {
+        font-weight: 600;
+        font-size: 1.3rem;
+    }
+
+    .nav-link {
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+        color: #a78bfa !important;
+    }
+
+    @media (max-width: 768px) {
+        .theme-switch {
+            margin-right: 0.5rem;
+        }
+
+        .theme-switch-label {
+            font-size: 0.8rem;
+        }
+
+        .switch {
+            width: 45px;
+            height: 25px;
+        }
+
+        .slider:before {
+            height: 18px;
+            width: 18px;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    }
+</style>
+
+<script>
+    // Theme management for header fragment
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+
+        // Apply saved theme
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        if (themeToggle) {
+            themeToggle.checked = currentTheme === 'dark';
+        }
+
+        // Toggle theme
+        if (themeToggle) {
+            themeToggle.addEventListener('change', function() {
+                const newTheme = this.checked ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        }
+    });
+</script>
 </body>
 </html>

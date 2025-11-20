@@ -4,40 +4,76 @@
   <meta charset="UTF-8">
   <title>Мои заказы - AutoDetail</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link th:href="@{/css/style.css}" rel="stylesheet">
   <style>
+    :root {
+        --bg-primary: #f8f9fa;
+        --bg-card: white;
+        --bg-navbar: #212529;
+        --text-primary: #1f2937;
+        --text-secondary: #64748b;
+        --text-muted: #6b7280;
+        --border-color: rgba(0,0,0,0.08);
+        --shadow: 0 10px 25px rgba(0,0,0,0.08);
+        --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
+    }
+
+    [data-theme="dark"] {
+        --bg-primary: #1a1a2e;
+        --bg-card: #2d3748;
+        --bg-navbar: #1a202c;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-muted: #cbd5e0;
+        --border-color: rgba(255,255,255,0.1);
+        --shadow: 0 10px 25px rgba(0,0,0,0.3);
+        --shadow-hover: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
+    body {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
     .order-card {
-      background: white;
+      background: var(--bg-card);
       border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow);
       padding: 2rem;
       margin-bottom: 1.5rem;
       transition: all 0.3s ease;
+      border-left: 4px solid #7c3aed;
     }
+
     .order-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+      box-shadow: var(--shadow-hover);
     }
+
     .order-header {
       display: flex;
-      justify-content: between;
+      justify-content: space-between;
       align-items: center;
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 2px solid #f1f5f9;
+      border-bottom: 2px solid var(--border-color);
     }
+
     .order-items {
       margin-bottom: 1.5rem;
     }
+
     .order-item {
       display: flex;
       align-items: center;
       padding: 1rem 0;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--border-color);
     }
+
     .order-item:last-child {
       border-bottom: none;
     }
+
     .order-item-image {
       width: 60px;
       height: 60px;
@@ -50,37 +86,196 @@
       color: #7c3aed;
       margin-right: 1rem;
     }
+
+    [data-theme="dark"] .order-item-image {
+      background: linear-gradient(135deg, #4c1d95, #5b21b6);
+    }
+
     .status-badge {
       padding: 0.5rem 1rem;
       border-radius: 20px;
       font-weight: 600;
       font-size: 0.875rem;
     }
+
     .status-created { background: #dbeafe; color: #1e40af; }
     .status-processing { background: #fef3c7; color: #92400e; }
     .status-shipped { background: #d1fae5; color: #065f46; }
     .status-delivered { background: #dcfce7; color: #166534; }
     .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+    [data-theme="dark"] .status-created { background: #1e3a8a; color: #93c5fd; }
+    [data-theme="dark"] .status-processing { background: #78350f; color: #fcd34d; }
+    [data-theme="dark"] .status-shipped { background: #064e3b; color: #34d399; }
+    [data-theme="dark"] .status-delivered { background: #166534; color: #86efac; }
+    [data-theme="dark"] .status-cancelled { background: #7f1d1d; color: #fca5a5; }
+
     .empty-orders {
       text-align: center;
       padding: 4rem 2rem;
     }
+
     .empty-orders-icon {
       font-size: 4rem;
       margin-bottom: 1rem;
+      color: #7c3aed;
     }
+
     .empty-orders-title {
       font-size: 1.5rem;
       font-weight: 600;
       margin-bottom: 1rem;
-      color: #374151;
+      color: var(--text-primary);
     }
+
     .empty-orders-text {
-      color: #6b7280;
+      color: var(--text-muted);
       margin-bottom: 2rem;
       max-width: 400px;
       margin-left: auto;
       margin-right: auto;
+      line-height: 1.6;
+    }
+
+    .orders-header {
+        background: var(--bg-card);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        border-left: 6px solid #7c3aed;
+        transition: all 0.3s ease;
+    }
+
+    .orders-title {
+        background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .orders-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 0;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        border: none;
+        border-radius: 12px;
+        padding: 0.875rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #7c3aed;
+        color: #7c3aed;
+        background: transparent;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background: #7c3aed;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Theme Switch */
+    .theme-switch {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+    }
+
+    .theme-switch-label {
+        margin-right: 0.5rem;
+        color: #dee2e6;
+        font-weight: 500;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+    .text-danger {
+        color: #ef4444 !important;
+    }
+
+    .navbar-brand {
+        font-weight: 700;
+        background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .nav-link.active {
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+    }
+
+    .badge {
+        font-weight: 600;
     }
   </style>
 </head>
@@ -89,6 +284,15 @@
   <div class="container">
     <a class="navbar-brand" th:href="@{/client/catalog}">🛠️ AutoDetail - Заказы</a>
     <div class="navbar-nav ms-auto">
+      <div class="theme-switch">
+        <span class="theme-switch-label">☀️</span>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="theme-switch-label">🌙</span>
+      </div>
+      <a class="nav-link" th:href="@{/client/catalog}">🔧 Каталог</a>
       <a class="nav-link" th:href="@{/client/cart}">
         🛒 Корзина
         <span class="cart-counter badge bg-danger ms-1" th:if="${(cartItemsCount != null ? cartItemsCount : 0) > 0}" th:text="${cartItemsCount != null ? cartItemsCount : 0}"></span>
@@ -99,7 +303,6 @@
       <span class="navbar-text client-user-info me-3">
         Вы вошли как: <strong>Клиент</strong>
       </span>
-      <!-- В навигации замените форму выхода на: -->
       <form th:action="@{/auth/logout}" method="post" class="d-inline">
         <button type="submit" class="btn btn-outline-light btn-sm client-logout-btn">🚪 Выйти</button>
       </form>
@@ -180,5 +383,23 @@
 <div th:insert="~{fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Theme management
+  document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const currentTheme = localStorage.getItem('theme') || 'light';
+
+      // Apply saved theme
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.checked = currentTheme === 'dark';
+
+      // Toggle theme
+      themeToggle.addEventListener('change', function() {
+          const newTheme = this.checked ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+      });
+  });
+</script>
 </body>
 </html>
