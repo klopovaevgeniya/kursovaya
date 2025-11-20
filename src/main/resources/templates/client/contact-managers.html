@@ -1,62 +1,56 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
-  <title>Связь с менеджерами</title>
+  <title>Менеджеры - AutoDetail</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
-        --bg-primary: #f8f9fa;
-        --bg-card: white;
-        --bg-navbar: #212529;
-        --text-primary: #1f2937;
-        --text-secondary: #64748b;
-        --text-muted: #6b7280;
-        --border-color: rgba(0,0,0,0.08);
-        --shadow: 0 10px 25px rgba(0,0,0,0.08);
-        --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
+      --bg-primary: #f8f9fa;
+      --bg-card: white;
+      --bg-navbar: #212529;
+      --text-primary: #1f2937;
+      --text-secondary: #64748b;
+      --text-muted: #6b7280;
+      --border-color: #e5e7eb;
+      --shadow: 0 2px 10px rgba(0,0,0,0.08);
+      --shadow-hover: 0 4px 15px rgba(0,0,0,0.12);
     }
 
     [data-theme="dark"] {
-        --bg-primary: #1a1a2e;
-        --bg-card: #2d3748;
-        --bg-navbar: #1a202c;
-        --text-primary: #f7fafc;
-        --text-secondary: #e2e8f0;
-        --text-muted: #cbd5e0;
-        --border-color: rgba(255,255,255,0.1);
-        --shadow: 0 10px 25px rgba(0,0,0,0.3);
-        --shadow-hover: 0 15px 35px rgba(0,0,0,0.4);
+      --bg-primary: #1a1a2e;
+      --bg-card: #2d3748;
+      --bg-navbar: #1a202c;
+      --text-primary: #f7fafc;
+      --text-secondary: #e2e8f0;
+      --text-muted: #cbd5e0;
+      --border-color: #4a5568;
+      --shadow: 0 2px 10px rgba(0,0,0,0.3);
+      --shadow-hover: 0 4px 15px rgba(0,0,0,0.4);
     }
 
     body {
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        transition: all 0.3s ease;
-    }
-
-    .search-filter-form {
-      background: var(--bg-card);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      padding: 1.5rem;
-      margin-bottom: 2rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
       transition: all 0.3s ease;
-      border-left: 4px solid #7c3aed;
+      min-height: 100vh;
     }
 
     .manager-card {
-      transition: all 0.3s ease;
-      border: none;
-      box-shadow: var(--shadow);
-      border-radius: 16px;
       background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      border: 1px solid var(--border-color);
       height: 100%;
     }
 
     .manager-card:hover {
-      transform: translateY(-5px);
       box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
     }
 
     .manager-avatar {
@@ -70,68 +64,52 @@
       font-size: 2rem;
       color: white;
       margin: 0 auto 1rem;
+      font-weight: bold;
     }
 
     .contact-info {
       background: var(--data-theme="dark" ? #4a5568 : #f8f9fa);
-      border-radius: 12px;
+      border-radius: 8px;
       padding: 1rem;
       margin-top: 1rem;
-      transition: all 0.3s ease;
+      border: 1px solid var(--border-color);
     }
 
     .contact-item {
       display: flex;
-      align-items: center;
-      margin-bottom: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .contact-item:last-child {
       margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
     }
 
     .contact-icon {
-      width: 20px;
-      margin-right: 10px;
+      width: 24px;
+      margin-right: 12px;
       text-align: center;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-    }
-
-    .empty-icon {
-      font-size: 4rem;
-      margin-bottom: 1.5rem;
-      opacity: 0.7;
-      color: #7c3aed;
-    }
-
-    .empty-title {
-      color: var(--text-primary);
-      margin-bottom: 1rem;
-      font-weight: 600;
-      font-size: 1.5rem;
-      transition: all 0.3s ease;
-    }
-
-    .empty-text {
-      color: var(--text-muted);
       font-size: 1.1rem;
-      margin-bottom: 2rem;
-      line-height: 1.6;
-      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .contact-content {
+      flex: 1;
     }
 
     .phone-link {
-      color: #198754;
+      color: #10b981;
       text-decoration: none;
       font-weight: 500;
+      transition: all 0.2s ease;
     }
 
     .phone-link:hover {
-      color: #146c43;
+      color: #059669;
       text-decoration: underline;
     }
 
@@ -143,200 +121,266 @@
       color: #10b981;
     }
 
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: var(--bg-card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin: 2rem 0;
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+
+    .empty-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .empty-text {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .search-filter-form {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid #7c3aed;
+    }
+
+    .catalog-header {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+      border-left: 6px solid #7c3aed;
+    }
+
+    .catalog-title {
+      background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .catalog-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .badge-manager {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      font-weight: 500;
+    }
+
+    .btn-contact {
+      background: linear-gradient(135deg, #10b981, #34d399);
+      border: none;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .btn-contact:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      color: white;
+    }
+
+    .btn-outline-secondary {
+      border: 2px solid #6b7280;
+      color: #6b7280;
+      background: transparent;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-secondary:hover {
+      background: #6b7280;
+      color: white;
+      transform: translateY(-2px);
+    }
+
     /* Theme Switch */
     .theme-switch {
-        display: flex;
-        align-items: center;
-        margin-right: 1rem;
+      display: flex;
+      align-items: center;
+      margin-right: 1rem;
     }
 
     .theme-switch-label {
-        margin-right: 0.5rem;
-        color: #dee2e6;
-        font-weight: 500;
+      margin-right: 0.5rem;
+      color: #dee2e6;
+      font-weight: 500;
     }
 
     .switch {
-        position: relative;
-        display: inline-block;
-        width: 60px;
-        height: 34px;
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
     }
 
     .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
+      opacity: 0;
+      width: 0;
+      height: 0;
     }
 
     .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: .4s;
-        border-radius: 34px;
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
     }
 
     .slider:before {
-        position: absolute;
-        content: "";
-        height: 26px;
-        width: 26px;
-        left: 4px;
-        bottom: 4px;
-        background-color: white;
-        transition: .4s;
-        border-radius: 50%;
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
     }
 
     input:checked + .slider {
-        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
     }
 
     input:checked + .slider:before {
-        transform: translateX(26px);
+      transform: translateX(26px);
     }
 
     /* Dark mode adjustments */
+    [data-theme="dark"] .text-muted {
+      color: #cbd5e0 !important;
+    }
+
     [data-theme="dark"] .form-control,
     [data-theme="dark"] .form-select {
-        background-color: #4a5568;
-        border-color: #718096;
-        color: #f7fafc;
+      background-color: #4a5568;
+      border-color: #718096;
+      color: #f7fafc;
     }
 
     [data-theme="dark"] .form-control:focus,
     [data-theme="dark"] .form-select:focus {
-        background-color: #4a5568;
-        border-color: #7c3aed;
-        color: #f7fafc;
+      background-color: #4a5568;
+      border-color: #7c3aed;
+      color: #f7fafc;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
     }
 
     .form-control {
-        border: 2px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        background: var(--bg-card);
-        color: var(--text-primary);
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: var(--bg-card);
+      color: var(--text-primary);
     }
 
     .form-control:focus {
-        border-color: #7c3aed;
-        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-        outline: none;
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+      outline: none;
     }
 
     .form-select {
-        border: 2px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        background: var(--bg-card);
-        color: var(--text-primary);
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #7c3aed, #a78bfa);
-        border: none;
-        border-radius: 10px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
-    }
-
-    .btn-outline-secondary {
-        border: 2px solid #6b7280;
-        color: #6b7280;
-        background: transparent;
-        border-radius: 10px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-outline-secondary:hover {
-        background: #6b7280;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .catalog-header {
-        background: var(--bg-card);
-        border-radius: 20px;
-        box-shadow: var(--shadow);
-        padding: 2.5rem;
-        margin-bottom: 2rem;
-        text-align: center;
-        border-left: 6px solid #7c3aed;
-        transition: all 0.3s ease;
-    }
-
-    .catalog-title {
-        background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-weight: 800;
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .catalog-subtitle {
-        color: var(--text-secondary);
-        font-size: 1.2rem;
-        font-weight: 500;
-        margin: 0;
-        transition: all 0.3s ease;
-    }
-
-    .badge.bg-success {
-        background: linear-gradient(135deg, #10b981, #34d399) !important;
-    }
-
-    .text-muted {
-        color: var(--text-muted) !important;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: var(--bg-card);
+      color: var(--text-primary);
     }
 
     .navbar-brand {
-        font-weight: 700;
-        background: linear-gradient(135deg, #dc2626 0%, #7c3aed 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+      font-weight: 600;
     }
 
-    [data-theme="dark"] .modal-content {
-        background-color: var(--bg-card);
-        color: var(--text-primary);
+    .navbar-nav .nav-link {
+      font-weight: 500;
+      transition: all 0.3s ease;
+      color: #dee2e6 !important;
     }
 
-    [data-theme="dark"] .modal-header,
-    [data-theme="dark"] .modal-footer {
-        border-color: var(--border-color);
+    .navbar-nav .nav-link.active {
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
     }
 
-    .btn-success {
-        background: linear-gradient(135deg, #10b981, #34d399);
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
+    .navbar-nav .nav-link:hover {
+      color: white !important;
     }
 
-    .btn-success:hover {
-        background: linear-gradient(135deg, #059669, #10b981);
-        transform: translateY(-1px);
+    .badge {
+      font-weight: 500;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--text-primary);
+    }
+
+    .fw-bold {
+      color: var(--text-primary);
+    }
+
+    .fw-semibold {
+      color: var(--text-primary);
+    }
+
+    .manager-stats {
+      background: var(--bg-card);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .contact-hours {
+      color: var(--text-success);
+      font-weight: 500;
+    }
+
+    .contact-offline {
+      color: var(--text-muted);
+      font-style: italic;
     }
   </style>
 </head>
@@ -353,168 +397,211 @@
         </label>
         <span class="theme-switch-label">🌙</span>
       </div>
-      <a class="nav-link active" th:href="@{/client/contact-managers}">👔 Менеджеры для связи</a>
       <a class="nav-link" th:href="@{/client/cart}">
         🛒 Корзина
         <span class="cart-counter badge bg-danger ms-1" th:if="${cartItemsCount > 0}" th:text="${cartItemsCount}"></span>
       </a>
+      <a class="nav-link active" th:href="@{/client/contact-managers}">👔 Менеджеры для связи</a>
       <a class="nav-link" th:href="@{/client/orders}">📦 Мои заказы</a>
       <a class="nav-link" th:href="@{/client/profile}">👤 Профиль</a>
       <span class="navbar-text client-user-info me-3">
         Вы вошли как: <strong th:text="${currentClientLogin}"></strong>
       </span>
-      <form th:action="@{/auth/logout}" method="post" class="d-inline">
-        <button type="submit" class="btn btn-outline-light btn-sm client-logout-btn">🚪 Выйти</button>
+      <form sec:authorize="isAuthenticated()" th:action="@{/auth/logout}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-outline-light btn-sm">🚪 Выйти</button>
       </form>
     </div>
   </div>
 </nav>
 
-<div class="main-content">
-  <div class="container mt-4">
-    <!-- Заголовок -->
-    <div class="catalog-header">
-      <h1 class="catalog-title">👔 Связь с менеджерами</h1>
-      <p class="catalog-subtitle">Наши менеджеры всегда готовы помочь вам с выбором и ответить на вопросы</p>
-    </div>
-
-    <!-- Поиск и фильтры -->
-    <div class="search-filter-form">
-      <form th:action="@{/client/contact-managers}" method="get" class="row g-3 align-items-end">
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">🔍 Поиск менеджеров</label>
-          <input type="text" class="form-control" name="search" th:value="${search}"
-                 placeholder="Введите имя, фамилию, телефон или описание...">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">📊 Сортировка</label>
-          <select name="sort" class="form-select">
-            <option value="">Без сортировки</option>
-            <option value="nameAsc" th:selected="${selectedSort == 'nameAsc'}">По имени (А-Я)</option>
-            <option value="nameDesc" th:selected="${selectedSort == 'nameDesc'}">По имени (Я-А)</option>
-            <option value="surnameAsc" th:selected="${selectedSort == 'surnameAsc'}">По фамилии (А-Я)</option>
-            <option value="surnameDesc" th:selected="${selectedSort == 'surnameDesc'}">По фамилии (Я-А)</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <button type="submit" class="btn btn-primary w-100">Применить</button>
-          <a th:href="@{/client/contact-managers}" class="btn btn-outline-secondary w-100 mt-2">Сбросить</a>
-        </div>
-      </form>
-    </div>
-
-    <!-- Список менеджеров -->
-    <div th:if="${not #lists.isEmpty(managers)}">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <span class="text-muted fw-medium">Найдено менеджеров: <strong th:text="${#lists.size(managers)}"></strong></span>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <!-- Заголовок -->
+      <div class="catalog-header">
+        <h1 class="catalog-title">👔 Связь с менеджерами</h1>
+        <p class="catalog-subtitle">Наши менеджеры всегда готовы помочь вам с выбором и ответить на вопросы</p>
       </div>
+    </div>
+  </div>
 
-      <div class="row">
-        <div th:each="manager : ${managers}" class="col-xl-4 col-lg-6 col-md-6 mb-4">
-          <div class="card manager-card h-100">
-            <div class="card-body text-center">
-              <div class="manager-avatar">
-                <span th:if="${manager.name != null and manager.surname != null}"
-                      th:text="${#strings.substring(manager.name, 0, 1)} + ${#strings.substring(manager.surname, 0, 1)}"></span>
-                <span th:if="${manager.name == null or manager.surname == null}">👨‍💼</span>
-              </div>
-
-              <h5 class="card-title mb-1">
-                <span th:text="${manager.surname}"></span>
-                <span th:text="${manager.name}"></span>
-                <span th:if="${manager.patronymic != null}" th:text="' ' + ${manager.patronymic}"></span>
-              </h5>
-
-              <div class="mb-3">
-                <span class="badge bg-success">Менеджер</span>
-              </div>
-
-              <!-- Контактная информация -->
-              <div class="contact-info text-start">
-                <h6 class="fw-semibold mb-3">📞 Контактная информация:</h6>
-
-                <!-- Телефон -->
-                <div class="contact-item" th:if="${manager.phone != null and !manager.phone.isEmpty()}">
-                  <div class="contact-icon">📱</div>
-                  <div>
-                    <strong>Телефон:</strong>
-                    <div>
-                      <a th:href="'tel:' + ${manager.phone}" class="phone-link" th:text="${manager.phone}"></a>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Email -->
-                <div class="contact-item" th:if="${manager.description != null and manager.description.contains('email:')}">
-                  <div class="contact-icon">📧</div>
-                  <div>
-                    <strong>Email:</strong>
-                    <div th:text="${#strings.substringAfter(manager.description, 'email:')}"></div>
-                  </div>
-                </div>
-
-                <!-- График работы -->
-                <div class="contact-item" th:if="${manager.description != null and manager.description.contains('график:')}">
-                  <div class="contact-icon">🕒</div>
-                  <div>
-                    <strong>График работы:</strong>
-                    <div th:text="${#strings.substringAfter(manager.description, 'график:')}"></div>
-                  </div>
-                </div>
-
-                <!-- Общее описание -->
-                <div class="contact-item" th:if="${manager.description != null and !manager.description.contains('email:') and !manager.description.contains('график:')}">
-                  <div class="contact-icon">ℹ️</div>
-                  <div>
-                    <strong>Описание:</strong>
-                    <div th:text="${manager.description}"></div>
-                  </div>
-                </div>
-
-                <!-- Если нет контактной информации -->
-                <div class="contact-item" th:if="${(manager.phone == null or manager.phone.isEmpty()) and manager.description == null}">
-                  <div class="contact-icon">ℹ️</div>
-                  <div class="text-muted">Контактная информация уточняется</div>
-                </div>
-              </div>
+  <!-- Статистика -->
+  <div class="row" th:if="${not #lists.isEmpty(managers)}">
+    <div class="col-12">
+      <div class="manager-stats">
+        <div class="row text-center">
+          <div class="col-md-3">
+            <div class="fw-bold fs-4" th:text="${#lists.size(managers)}"></div>
+            <div class="text-muted">Всего менеджеров</div>
+          </div>
+          <div class="col-md-3">
+            <div class="fw-bold fs-4">
+              <span th:text="${#lists.size(managers.?[phone != null and !#strings.isEmpty(phone)])}"></span>
             </div>
+            <div class="text-muted">С контактами</div>
+          </div>
+          <div class="col-md-3">
+            <div class="fw-bold fs-4">
+              <span th:text="${#lists.size(managers.?[description != null and #strings.contains(description, 'график:')])}"></span>
+            </div>
+            <div class="text-muted">С графиком работы</div>
+          </div>
+          <div class="col-md-3">
+            <div class="fw-bold fs-4">
+              <span th:text="${#lists.size(managers.?[description != null and #strings.contains(description, 'email:')])}"></span>
+            </div>
+            <div class="text-muted">С email</div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Пустой список -->
-    <div th:if="${#lists.isEmpty(managers)}" class="empty-state">
-      <div class="empty-icon">😔</div>
-      <h3 class="empty-title">Менеджеры не найдены</h3>
-      <p class="empty-text" th:if="${search != null}">Попробуйте изменить параметры поиска</p>
-      <p class="empty-text" th:if="${search == null}">В данный момент нет доступных менеджеров</p>
-      <div class="empty-catalog-actions">
-        <a th:href="@{/client/contact-managers}" class="btn btn-primary">🔄 Сбросить фильтры</a>
+  <!-- Поиск и фильтры -->
+  <div class="search-filter-form">
+    <form th:action="@{/client/contact-managers}" method="get" class="row g-3 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">🔍 Поиск менеджеров</label>
+        <input type="text" class="form-control" name="search" th:value="${search}"
+               placeholder="Введите имя, фамилию, телефон или описание...">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">📊 Сортировка</label>
+        <select name="sort" class="form-select">
+          <option value="">Без сортировки</option>
+          <option value="nameAsc" th:selected="${selectedSort == 'nameAsc'}">По имени (А-Я)</option>
+          <option value="nameDesc" th:selected="${selectedSort == 'nameDesc'}">По имени (Я-А)</option>
+          <option value="surnameAsc" th:selected="${selectedSort == 'surnameAsc'}">По фамилии (А-Я)</option>
+          <option value="surnameDesc" th:selected="${selectedSort == 'surnameDesc'}">По фамилии (Я-А)</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Применить</button>
+        <a th:href="@{/client/contact-managers}" class="btn btn-outline-secondary w-100 mt-2">Сбросить</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Список менеджеров -->
+  <div th:if="${not #lists.isEmpty(managers)}">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <span class="text-muted fw-medium">
+        Найдено менеджеров: <strong th:text="${#lists.size(managers)}"></strong>
+        <span th:if="${search != null}" class="text-primary">
+          по запросу: "<span th:text="${search}"></span>"
+        </span>
+      </span>
+    </div>
+
+    <div class="row">
+      <div th:each="manager : ${managers}" class="col-xl-4 col-lg-6 col-md-6 mb-4">
+        <div class="manager-card">
+          <div class="text-center">
+            <div class="manager-avatar">
+              <span th:if="${manager.name != null and manager.surname != null}"
+                    th:text="${#strings.substring(manager.name, 0, 1)} + ${#strings.substring(manager.surname, 0, 1)}"></span>
+              <span th:if="${manager.name == null or manager.surname == null}">👨‍💼</span>
+            </div>
+
+            <h5 class="card-title mb-1">
+              <span th:text="${manager.surname}"></span>
+              <span th:text="${manager.name}"></span>
+              <span th:if="${manager.patronymic != null}" th:text="' ' + ${manager.patronymic}"></span>
+            </h5>
+
+            <div class="mb-3">
+              <span class="badge badge-manager">Менеджер</span>
+            </div>
+          </div>
+
+          <!-- Контактная информация -->
+          <div class="contact-info">
+            <h6 class="fw-semibold mb-3">📞 Контактная информация:</h6>
+
+            <!-- Телефон -->
+            <div class="contact-item" th:if="${manager.phone != null and !manager.phone.isEmpty()}">
+              <div class="contact-icon">📱</div>
+              <div class="contact-content">
+                <strong>Телефон:</strong>
+                <div>
+                  <a th:href="'tel:' + ${manager.phone}" class="phone-link" th:text="${manager.phone}"></a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="contact-item" th:if="${manager.description != null and manager.description.contains('email:')}">
+              <div class="contact-icon">📧</div>
+              <div class="contact-content">
+                <strong>Email:</strong>
+                <div>
+                  <a th:href="'mailto:' + ${#strings.substringAfter(manager.description, 'email:')}"
+                     class="phone-link"
+                     th:text="${#strings.substringAfter(manager.description, 'email:')}">
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- График работы -->
+            <div class="contact-item" th:if="${manager.description != null and manager.description.contains('график:')}">
+              <div class="contact-icon">🕒</div>
+              <div class="contact-content">
+                <strong>График работы:</strong>
+                <div th:text="${#strings.substringAfter(manager.description, 'график:')}"></div>
+              </div>
+            </div>
+
+            <!-- Общее описание -->
+            <div class="contact-item" th:if="${manager.description != null and !manager.description.contains('email:') and !manager.description.contains('график:')}">
+              <div class="contact-icon">ℹ️</div>
+              <div class="contact-content">
+                <strong>Описание:</strong>
+                <div th:text="${manager.description}"></div>
+              </div>
+            </div>
+
+            <!-- Если нет контактной информации -->
+            <div class="contact-item" th:if="${(manager.phone == null or manager.phone.isEmpty()) and manager.description == null}">
+              <div class="contact-icon">ℹ️</div>
+              <div class="contact-content">
+                <div class="text-muted">Контактная информация уточняется</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопка связи -->
+          <div class="text-center mt-3">
+            <a th:href="'tel:' + ${manager.phone}"
+               class="btn-contact w-100"
+               th:if="${manager.phone != null and !manager.phone.isEmpty()}">
+              📞 Позвонить
+            </a>
+            <button class="btn btn-outline-secondary w-100" disabled
+                    th:if="${manager.phone == null or manager.phone.isEmpty()}">
+              Контакты недоступны
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Модальное окно для связи -->
-<div class="modal fade" id="contactModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Связь с менеджером</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>Для связи с <span id="managerName"></span> используйте контактную информацию:</p>
-        <div class="contact-details mt-3">
-          <p th:if="${manager.phone != null}"><strong>Телефон:</strong> <span id="managerPhone"></span></p>
-          <p class="mt-2">Вы можете позвонить по указанному телефону из карточки менеджера.</p>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-        <a id="callButton" href="#" class="btn btn-success">📞 Позвонить</a>
-      </div>
+  <!-- Пустой список -->
+  <div th:if="${#lists.isEmpty(managers)}" class="empty-state">
+    <div class="empty-icon">😔</div>
+    <h3 class="empty-title">Менеджеры не найдены</h3>
+    <p class="empty-text" th:if="${search != null}">
+      По вашему запросу "<span th:text="${search}"></span>" менеджеры не найдены.<br>
+      Попробуйте изменить параметры поиска.
+    </p>
+    <p class="empty-text" th:if="${search == null}">
+      В данный момент нет доступных менеджеров.<br>
+      Пожалуйста, обратитесь в техническую поддержку.
+    </p>
+    <div class="empty-catalog-actions">
+      <a th:href="@{/client/contact-managers}" class="btn btn-primary me-2">🔄 Сбросить фильтры</a>
+      <a th:href="@{/client/catalog}" class="btn btn-outline-secondary">🔧 Перейти в каталог</a>
     </div>
   </div>
 </div>
@@ -537,15 +624,7 @@
           localStorage.setItem('theme', newTheme);
       });
 
-      // Обработчик для кнопок связи
-      document.querySelectorAll('.contact-btn').forEach(button => {
-          button.addEventListener('click', function() {
-              const name = this.getAttribute('data-manager-name');
-              const surname = this.getAttribute('data-manager-surname');
-              const phone = this.getAttribute('data-manager-phone');
-              showContactModal(name, surname, phone);
-          });
-      });
+      console.log('Страница менеджеров загружена');
 
       // Автопоиск при вводе
       let searchTimeout;
@@ -560,24 +639,60 @@
       document.querySelector('select[name="sort"]')?.addEventListener('change', function(e) {
           this.form.submit();
       });
+
+      // Анимация при наведении на карточки
+      document.querySelectorAll('.manager-card').forEach(card => {
+          card.addEventListener('mouseenter', function() {
+              this.style.transform = 'translateY(-5px)';
+          });
+
+          card.addEventListener('mouseleave', function() {
+              this.style.transform = 'translateY(0)';
+          });
+      });
   });
 
-  // Функция показа модального окна
-  function showContactModal(name, surname, phone) {
-      const managerName = name + ' ' + surname;
-      document.getElementById('managerName').textContent = managerName;
-
-      if (phone) {
-          document.getElementById('managerPhone').textContent = phone;
-          document.getElementById('callButton').href = 'tel:' + phone;
-          document.getElementById('callButton').style.display = 'inline-block';
+  // Функция для быстрого звонка
+  function quickCall(phoneNumber) {
+      if (phoneNumber && phoneNumber.trim() !== '') {
+          window.location.href = 'tel:' + phoneNumber;
       } else {
-          document.getElementById('managerPhone').textContent = 'не указан';
-          document.getElementById('callButton').style.display = 'none';
+          alert('Номер телефона не указан');
       }
+  }
 
-      const modal = new bootstrap.Modal(document.getElementById('contactModal'));
-      modal.show();
+  // Функция для копирования контактов
+  function copyContact(text, type) {
+      navigator.clipboard.writeText(text).then(function() {
+          showToast(type + ' скопирован в буфер обмена', 'success');
+      }).catch(function() {
+          showToast('Не удалось скопировать ' + type, 'error');
+      });
+  }
+
+  // Функция для показа уведомлений (упрощенная версия)
+  function showToast(message, type) {
+      // Создаем простое уведомление
+      const toast = document.createElement('div');
+      toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+      toast.style.position = 'fixed';
+      toast.style.top = '20px';
+      toast.style.right = '20px';
+      toast.style.zIndex = '9999';
+      toast.style.minWidth = '300px';
+      toast.innerHTML = `
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+
+      document.body.appendChild(toast);
+
+      // Автоматическое удаление через 3 секунды
+      setTimeout(() => {
+          if (toast.parentElement) {
+              toast.remove();
+          }
+      }, 3000);
   }
 </script>
 </body>
