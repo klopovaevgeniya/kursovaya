@@ -1,13 +1,11 @@
-# Этап сборки
+# Этап сборки - ТОЧНО СУЩЕСТВУЕТ
 FROM maven:3.8.5-openjdk-17 AS builder
 WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src ./src
+COPY . .
 RUN mvn clean package -DskipTests
 
-# Этап запуска
-FROM openjdk:17-jdk-slim
+# Этап запуска - ТОЧНО СУЩЕСТВУЕТ
+FROM openjdk:17-alpine
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 
