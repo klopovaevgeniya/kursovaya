@@ -1,5 +1,5 @@
-# Самый базовый и проверенный образ
-FROM maven:3.8.5-openjdk-17
+# ОБРАЗ С JAVA 21 - ТОЧНО ПОДХОДИТ ДЛЯ ТВОЕГО POM.XML
+FROM maven:3.9.6-eclipse-temurin-21
 
 WORKDIR /app
 COPY . .
@@ -9,4 +9,4 @@ RUN mvn clean package -DskipTests
 
 # Запускаем
 EXPOSE 8080
-CMD ["java", "-jar", "target/*.jar"]
+CMD ["java", "-jar", "target/AutoDetail-0.0.1-SNAPSHOT.jar"]
