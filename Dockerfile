@@ -1,13 +1,12 @@
-# Этап сборки - ТОЧНО СУЩЕСТВУЕТ
-FROM maven:3.8.5-openjdk-17 AS builder
+# Самый базовый и проверенный образ
+FROM maven:3.8.5-openjdk-17
+
 WORKDIR /app
 COPY . .
+
+# Собираем проект
 RUN mvn clean package -DskipTests
 
-# Этап запуска - ТОЧНО СУЩЕСТВУЕТ
-FROM openjdk:17-alpine
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-
+# Запускаем
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "target/*.jar"]
