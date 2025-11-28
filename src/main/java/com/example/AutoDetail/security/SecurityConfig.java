@@ -27,22 +27,7 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // API endpoints менеджера (требуют аутентификации)
-                        .requestMatchers(
-                                "/manager/api/**"
-                        ).hasRole("MANAGER")
-
-                        // Общедоступные эндпоинты API (только для чтения)
-                        .requestMatchers(
-                                "/api/cars/**",
-                                "/api/car-details/**",
-                                "/api/categories/**",
-                                "/api/suppliers/**",
-                                "/api/items/**",
-                                "/api/order-statuses/**"
-                        ).permitAll()
-
-                        // Остальные общедоступные страницы
+                        // Остальные общедоступные страницы (ВСЕ что связано с аутентификацией)
                         .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
 
                         // Защищенные пути по ролям
@@ -50,10 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/manager/**").hasRole("MANAGER")
                         .requestMatchers("/client/**").hasRole("CLIENT")
 
-                        // Остальные API эндпоинты требуют аутентификации
-                        .requestMatchers("/api/clients/**", "/api/orders/**", "/api/order-items/**",
-                                "/api/cart/**", "/api/search-history/**", "/api/users/**").authenticated()
-
+                        // ВСЕ остальные запросы требуют аутентификации
                         .anyRequest().authenticated()
                 )
 
@@ -80,15 +62,8 @@ public class SecurityConfig {
                         .accessDeniedPage("/auth/access-denied")
                 )
 
-                // ✅ Отключаем CSRF для API (можно включить при необходимости)
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(
-                                "/api/**",  // Отключаем CSRF для всех API эндпоинтов
-                                "/manager/api/**", // Отключаем CSRF для API менеджера
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        )
-                );
+                // ✅ Временно отключаем CSRF для упрощения
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
