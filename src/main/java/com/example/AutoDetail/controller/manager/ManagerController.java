@@ -510,7 +510,7 @@ public class ManagerController {
         return "redirect:/manager/orders";
     }
 
-    // API для autocomplete поиска
+    // API для autocomplete поиска - ИЗМЕНИТЕ ПУТИ НА /manager/api/
     @GetMapping("/api/items/search")
     @ResponseBody
     public List<Item> searchItemsApi(@RequestParam String q) {
