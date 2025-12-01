@@ -14,10 +14,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
-                // 🔒 Разрешаем общедоступные страницы
                 .authorizeHttpRequests(authz -> authz
-                        // Swagger UI и API документация
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -27,28 +26,26 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // Остальные общедоступные страницы (ВСЕ что связано с аутентификацией)
-                        .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/error")
+                        .permitAll()
 
-                        // Защищенные пути по ролям
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/manager/**").hasRole("MANAGER")
                         .requestMatchers("/client/**").hasRole("CLIENT")
 
-                        // ВСЕ остальные запросы требуют аутентификации
                         .anyRequest().authenticated()
                 )
 
-                // 🔑 Настройка формы логина
                 .formLogin(form -> form
                         .loginPage("/auth/login")
                         .loginProcessingUrl("/auth/login")
+                        .usernameParameter("login")       // логин из формы
+                        .passwordParameter("password")    // пароль из формы
                         .successHandler(new CustomAuthenticationSuccessHandler())
                         .failureUrl("/auth/login?error=true")
                         .permitAll()
                 )
 
-                // 🚪 Настройка выхода
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
                         .logoutSuccessUrl("/auth/login?logout=true")
@@ -57,12 +54,10 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                // ⚠️ Обработка ошибок доступа
-                .exceptionHandling(exceptions -> exceptions
+                .exceptionHandling(ex -> ex
                         .accessDeniedPage("/auth/access-denied")
                 )
 
-                // ✅ Временно отключаем CSRF для упрощения
                 .csrf(csrf -> csrf.disable());
 
         return http.build();

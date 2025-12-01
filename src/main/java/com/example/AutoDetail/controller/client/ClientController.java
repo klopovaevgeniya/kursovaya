@@ -10,6 +10,7 @@ import com.example.AutoDetail.service.EmailService;
 import com.example.AutoDetail.service.UserService;
 import com.example.AutoDetail.service.SearchHistoryService;
 import com.example.AutoDetail.dto.ClientProfileDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -420,9 +421,11 @@ public class ClientController {
     }
 
     // Обновление профиля (AJAX)
+    // Обновление профиля (AJAX)
     @PostMapping("/profile/update")
     @ResponseBody
-    public Map<String, Object> updateProfile(@RequestBody ClientProfileDTO profileDTO) {
+    public Map<String, Object> updateProfile(@RequestBody ClientProfileDTO profileDTO,
+                                             HttpServletRequest request) {
         logger.info("AJAX запрос обновления профиля");
         Map<String, Object> response = new HashMap<>();
         try {
@@ -431,10 +434,18 @@ public class ClientController {
 
             Client updatedClient = clientProfileService.updateClientProfile(clientId, profileDTO);
 
+            boolean loginChanged = !oldLogin.equals(updatedClient.getLogin());
+
             response.put("success", true);
             response.put("message", "Профиль успешно обновлен");
             response.put("user", updatedClient);
-            response.put("loginChanged", !oldLogin.equals(updatedClient.getLogin()));
+            response.put("loginChanged", loginChanged);
+
+            if (loginChanged) {
+                response.put("redirectUrl", "/auth/login?loginChanged=true");
+                logger.info("Логин изменен для клиента ID={}: {} -> {}",
+                        clientId, oldLogin, updatedClient.getLogin());
+            }
 
             logger.info("Профиль клиента ID={} успешно обновлен", clientId);
         } catch (Exception e) {

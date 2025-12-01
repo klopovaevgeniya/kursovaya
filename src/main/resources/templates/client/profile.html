@@ -816,18 +816,19 @@
       .then(data => {
           showLoading(false);
           if (data.success) {
-              showAlert('Профиль успешно обновлен', 'success');
               // Закрываем модальное окно
               const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
               modal.hide();
 
-              // Если логин изменился, делаем полную перезагрузку
               if (data.loginChanged) {
+                  // Если логин изменился - показываем специальное сообщение и перезагружаем страницу
+                  showAlert('Профиль успешно обновлен! Для применения изменений страница будет перезагружена.', 'success');
                   setTimeout(() => {
-                      window.location.href = '/client/profile';
-                  }, 1000);
+                      window.location.reload();
+                  }, 2000);
               } else {
-                  // Иначе просто обновляем данные на странице
+                  // Если логин не изменился - просто обновляем данные на странице
+                  showAlert('Профиль успешно обновлен', 'success');
                   updateProfileData();
               }
           } else {

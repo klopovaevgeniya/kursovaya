@@ -80,7 +80,7 @@ public class ClientProfileService {
             }
         }
 
-        // Сохраняем старый логин для обновления контекста безопасности
+        // Сохраняем старый логин для проверки изменений
         String oldLogin = client.getLogin();
 
         // Обновление основных данных
@@ -101,7 +101,7 @@ public class ClientProfileService {
 
         // Если логин изменился, обновляем контекст безопасности
         if (loginChanged) {
-            updateSecurityContext(oldLogin, updatedClient.getLogin());
+            updateSecurityContext(oldLogin, updatedClient);
         }
 
         return updatedClient;
@@ -199,17 +199,24 @@ public class ClientProfileService {
         }
     }
 
-    private void updateSecurityContext(String oldLogin, String newLogin) {
+    /**
+     * Обновление контекста безопасности после смены логина
+     */
+    private void updateSecurityContext(String oldLogin, Client updatedClient) {
         Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
         if (currentAuth != null && currentAuth.getName().equals(oldLogin)) {
+            // Создаем новую аутентификацию с обновленными данными
             UsernamePasswordAuthenticationToken newAuthentication =
                     new UsernamePasswordAuthenticationToken(
-                            newLogin,
+                            updatedClient.getLogin(), // новый логин
                             currentAuth.getCredentials(),
                             currentAuth.getAuthorities()
                     );
             newAuthentication.setDetails(currentAuth.getDetails());
             SecurityContextHolder.getContext().setAuthentication(newAuthentication);
+
+            // Логируем успешное обновление
+            System.out.println("✅ Контекст безопасности обновлен: " + oldLogin + " → " + updatedClient.getLogin());
         }
     }
 
@@ -330,5 +337,15 @@ public class ClientProfileService {
         Client client = clientRepository.findByLogin(login)
                 .orElseThrow(() -> new RuntimeException("Клиент не найден"));
         return getClientProfileDTO(client.getId());
+    }
+
+    /**
+     * Проверяет, изменился ли логин при обновлении профиля
+     * Используется в контроллере для определения необходимости перелогина
+     */
+    public boolean isLoginChanged(Long clientId, String newLogin) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Клиент не найден"));
+        return !client.getLogin().equals(newLogin);
     }
 }
